@@ -1,37 +1,49 @@
+"use client"
+
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { StatsCard } from "@/components/admin/stats-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, BookOpen, ShoppingCart, FileText, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { getDashboardStats, getAllPrograms } from "@/lib/database/operations"
 import type { ProgramWithInstructor } from "@/lib/types/database"
+import { useEffect, useState } from "react"
 
-async function getDashboardData() {
-  try {
-    const [stats, recentPrograms] = await Promise.all([
-      getDashboardStats(),
-      getAllPrograms()
-    ])
+export default function AdminDashboard() {
+  const [dashboardData, setDashboardData] = useState({
+    stats: {
+      totalPrograms: 0,
+      totalParticipants: 0,
+      activeAnnouncements: 0,
+      pendingDocuments: 0
+    },
+    recentPrograms: [] as ProgramWithInstructor[]
+  })
+  const [isLoading, setIsLoading] = useState(true)
 
-    return {
-      stats,
-      recentPrograms: recentPrograms.slice(0, 5) // Get first 5 programs
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        const [stats, recentPrograms] = await Promise.all([
+          getDashboardStats(),
+          getAllPrograms()
+        ])
+
+        setDashboardData({
+          stats,
+          recentPrograms: recentPrograms.slice(0, 5) // Get first 5 programs
+        })
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+        // Keep default empty state
+      } finally {
+        setIsLoading(false)
+      }
     }
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error)
-    return {
-      stats: {
-        totalPrograms: 0,
-        totalParticipants: 0,
-        activeAnnouncements: 0,
-        pendingDocuments: 0
-      },
-      recentPrograms: []
-    }
-  }
-}
 
-export default async function AdminDashboard() {
-  const { stats, recentPrograms } = await getDashboardData()
+    fetchDashboardData()
+  }, [])
+
+  const { stats, recentPrograms } = dashboardData
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,7 +59,18 @@ export default async function AdminDashboard() {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-16 bg-muted rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatsCard
               title="Total Programs"
               value={stats.totalPrograms}
@@ -72,8 +95,28 @@ export default async function AdminDashboard() {
               icon={Clock}
               trend={{ value: 5, isPositive: false }}
             />
-          </div>
+            </div>
+          )}
 
+          {isLoading ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {[...Array(2)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-24 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <Card className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-32 bg-muted rounded"></div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Quick Stats */}
             <Card>
@@ -170,6 +213,8 @@ export default async function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+          )}
+          </>
           )}
           </div>
         </main>
