@@ -1,36 +1,42 @@
-// Database types based on Supabase schema - Updated to match actual database
+// Auth/User related types
 export type UserRole = 'admin' | 'instructor' | 'student'
 
-export type ProgramStatus = 'active' | 'inactive' | 'completed' | 'cancelled'
+export interface User {
+  id: string
+  email: string
+  created_at: string
+  user_metadata?: {
+    first_name?: string
+    last_name?: string
+    role?: UserRole
+    organization_id?: string
+    organization_name?: string
+    phone?: string
+  }
+}
 
-export type ParticipantStatus = 'enrolled' | 'completed' | 'dropped' | 'pending'
+export interface UserMetadata {
+  id: string
+  email: string
+  first_name?: string
+  last_name?: string
+  role?: UserRole
+  organization_id?: string
+  organization_name?: string
+  phone?: string
+}
 
-export type AnnouncementTargetAudience = 'all' | 'students' | 'instructors' | 'program_specific'
-
-export type AnnouncementPriority = 'low' | 'medium' | 'high' | 'urgent'
-
-export type DocumentType = 'enrollment' | 'medical' | 'emergency_contact' | 'photo_release' | 'other'
-
-export type DocumentStatus = 'pending' | 'approved' | 'rejected' | 'missing'
-
-export type LessonPlanStatus = 'draft' | 'published' | 'completed'
-
-export type PurchaseOrderStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'ordered' | 'received'
-
-export type FieldTripStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'scheduled' | 'completed' | 'cancelled'
-
-// Multi-tenancy interfaces - Updated to match actual Supabase schema
+// Organization types
 export interface Organization {
   id: string
   name: string
   subdomain: string
   admin_id: string
-  settings?: any // jsonb field
   created_at: string
   updated_at: string
 }
 
-export interface OrganizationInvitation {
+export interface OrganizationInvite {
   id: string
   organization_id: string
   email: string
@@ -44,33 +50,17 @@ export interface OrganizationInvitation {
 }
 
 // Database table interfaces - Updated to match schema with organization support
-export interface Profile {
-  id: string
-  email: string
-  first_name?: string
-  last_name?: string
-  role: UserRole
-  phone?: string
-  organization_id?: string
-  created_at: string
-  updated_at: string
-}
-
 export interface Program {
   id: string
-  name: string
-  description?: string
-  category?: string
-  start_date?: string
-  end_date?: string
-  max_participants?: number
-  current_participants: number
-  instructor_id?: string
-  status: ProgramStatus
-  meeting_days?: string
-  meeting_time?: string
-  room_location?: string
+  title: string
+  description: string
+  instructor_id: string
   organization_id: string
+  start_date: string
+  end_date: string
+  max_participants?: number
+  location?: string
+  status: 'draft' | 'active' | 'completed' | 'cancelled'
   created_at: string
   updated_at: string
 }
@@ -79,9 +69,12 @@ export interface ProgramParticipant {
   id: string
   program_id: string
   student_id: string
-  enrollment_date: string
-  status: ParticipantStatus
-  created_at: string
+  organization_id: string
+  enrolled_at: string
+  status: 'enrolled' | 'completed' | 'dropped'
+  completion_date?: string
+  final_grade?: string
+  notes?: string
   updated_at: string
 }
 
@@ -90,122 +83,124 @@ export interface Announcement {
   title: string
   content: string
   author_id: string
-  target_audience: AnnouncementTargetAudience
+  organization_id: string
   program_id?: string
-  priority: AnnouncementPriority
-  is_published: boolean
-  published_at?: string
-  expires_at?: string
+  priority: 'low' | 'medium' | 'high'
+  target_audience: 'all' | 'instructors' | 'students'
+  published: boolean
   created_at: string
   updated_at: string
 }
 
 export interface Document {
   id: string
-  name: string
+  title: string
   description?: string
-  file_url?: string
-  file_type?: string
-  file_size?: number
-  student_id: string
+  file_path: string
+  file_type: string
+  file_size: number
+  uploaded_by: string
+  student_id?: string
   program_id?: string
-  document_type: DocumentType
-  status: DocumentStatus
+  organization_id: string
+  category: 'assignment' | 'resource' | 'certificate' | 'report' | 'other'
+  is_public: boolean
+  requires_review?: boolean
+  reviewed?: boolean
   reviewed_by?: string
   reviewed_at?: string
-  notes?: string
-  is_required: boolean
-  created_at: string
+  uploaded_at: string
   updated_at: string
 }
 
 export interface LessonPlan {
   id: string
-  program_id: string
-  instructor_id: string
   title: string
   description?: string
-  lesson_date: string
+  program_id: string
+  instructor_id: string
+  organization_id: string
+  date: string
   duration_minutes?: number
   objectives?: string[]
-  materials_needed?: string[]
+  materials?: string[]
   activities?: string
+  homework?: string
   notes?: string
-  status: LessonPlanStatus
+  status: 'draft' | 'published' | 'completed'
   created_at: string
   updated_at: string
 }
 
-export interface PurchaseOrderItem {
-  name: string
-  quantity: number
-  unit_price: number
-  total_price: number
-  description?: string
-}
-
 export interface PurchaseOrder {
   id: string
-  program_id: string
-  instructor_id: string
   title: string
   description?: string
+  program_id: string
+  requested_by: string
+  organization_id: string
   vendor?: string
-  total_amount?: number
+  total_amount: number
   currency: string
-  items?: PurchaseOrderItem[]
-  justification?: string
-  status: PurchaseOrderStatus
-  submitted_at?: string
+  items: {
+    description: string
+    quantity: number
+    unit_price: number
+    total: number
+  }[]
+  status: 'draft' | 'pending' | 'approved' | 'ordered' | 'received' | 'cancelled'
+  approved?: boolean
   approved_by?: string
   approved_at?: string
-  rejection_reason?: string
   created_at: string
   updated_at: string
 }
 
 export interface FieldTrip {
   id: string
-  program_id: string
-  instructor_id: string
   title: string
   description?: string
-  destination: string
-  trip_date: string
+  program_id: string
+  instructor_id: string
+  organization_id: string
+  location: string
+  date: string
   departure_time?: string
   return_time?: string
-  transportation?: string
-  cost_per_student?: number
   max_participants?: number
-  educational_objectives?: string
-  safety_considerations?: string
-  required_permissions?: string[]
-  status: FieldTripStatus
-  submitted_at?: string
+  cost_per_participant?: number
+  transportation?: string
+  requirements?: string[]
+  emergency_contacts?: {
+    name: string
+    phone: string
+    relationship: string
+  }[]
+  status: 'planning' | 'approved' | 'completed' | 'cancelled'
+  approved?: boolean
   approved_by?: string
   approved_at?: string
-  rejection_reason?: string
   created_at: string
   updated_at: string
 }
 
-// Extended types with relations for joins
+// Extended types with user metadata for relations
 export interface ProgramWithInstructor extends Program {
-  instructor?: Profile
+  instructor_metadata?: UserMetadata
 }
 
 export interface ProgramWithParticipants extends Program {
-  participants?: (ProgramParticipant & { student: Profile })[]
+  participants?: (ProgramParticipant & { student_metadata: UserMetadata })[]
 }
 
 export interface AnnouncementWithAuthor extends Announcement {
-  author: Profile
+  author_metadata: UserMetadata
   program?: Program
 }
 
 export interface DocumentWithStudent extends Document {
-  student: Profile
-  reviewed_by_profile?: Profile
+  student_metadata: UserMetadata
+  reviewed_by_metadata?: UserMetadata
 }
 
 export interface LessonPlanWithProgram extends LessonPlan {
@@ -214,16 +209,16 @@ export interface LessonPlanWithProgram extends LessonPlan {
 
 export interface PurchaseOrderWithProgram extends PurchaseOrder {
   program: Program
-  approved_by_profile?: Profile
+  approved_by_metadata?: UserMetadata
 }
 
 export interface FieldTripWithProgram extends FieldTrip {
   program: Program
-  approved_by_profile?: Profile
+  approved_by_metadata?: UserMetadata
 }
 
 export interface ParticipantWithDetails extends ProgramParticipant {
-  student: Profile
+  student_metadata: UserMetadata
   program: Program
 }
 
@@ -231,78 +226,107 @@ export interface ParticipantWithDetails extends ProgramParticipant {
 export interface DashboardStats {
   totalPrograms: number
   activePrograms: number
-  totalStudents: number
+  totalParticipants: number
   totalInstructors: number
-  pendingDocuments: number
-  pendingPurchaseOrders: number
-  upcomingFieldTrips: number
-  recentAnnouncements: number
+  totalStudents: number
+  recentAnnouncements: Announcement[]
+  upcomingFieldTrips: FieldTrip[]
+  pendingDocuments: Document[]
 }
 
 // Form types for creating/updating records
-export interface CreateProgramForm {
-  name: string
-  description?: string
-  category?: string
-  start_date?: string
-  end_date?: string
+export interface CreateProgramData {
+  title: string
+  description: string
+  instructor_id: string
+  start_date: string
+  end_date: string
   max_participants?: number
-  instructor_id?: string
+  location?: string
 }
 
-export interface CreateAnnouncementForm {
+export interface CreateAnnouncementData {
   title: string
   content: string
-  target_audience: AnnouncementTargetAudience
   program_id?: string
-  priority: AnnouncementPriority
-  expires_at?: string
+  priority: 'low' | 'medium' | 'high'
+  target_audience: 'all' | 'instructors' | 'students'
+  published: boolean
 }
 
-export interface CreateLessonPlanForm {
-  program_id: string
+export interface CreateDocumentData {
   title: string
   description?: string
-  lesson_date: string
+  file_path: string
+  file_type: string
+  file_size: number
+  student_id?: string
+  program_id?: string
+  category: 'assignment' | 'resource' | 'certificate' | 'report' | 'other'
+  is_public: boolean
+  requires_review?: boolean
+}
+
+export interface CreateLessonPlanData {
+  title: string
+  description?: string
+  program_id: string
+  date: string
   duration_minutes?: number
   objectives?: string[]
-  materials_needed?: string[]
+  materials?: string[]
   activities?: string
+  homework?: string
   notes?: string
 }
 
-export interface CreatePurchaseOrderForm {
-  program_id: string
+export interface CreatePurchaseOrderData {
   title: string
   description?: string
+  program_id: string
   vendor?: string
-  items?: PurchaseOrderItem[]
-  justification?: string
+  total_amount: number
+  currency: string
+  items: {
+    description: string
+    quantity: number
+    unit_price: number
+    total: number
+  }[]
 }
 
-export interface CreateFieldTripForm {
-  program_id: string
+export interface CreateFieldTripData {
   title: string
   description?: string
-  destination: string
-  trip_date: string
+  program_id: string
+  location: string
+  date: string
   departure_time?: string
   return_time?: string
-  transportation?: string
-  cost_per_student?: number
   max_participants?: number
-  educational_objectives?: string
-  safety_considerations?: string
-  required_permissions?: string[]
+  cost_per_participant?: number
+  transportation?: string
+  requirements?: string[]
+  emergency_contacts?: {
+    name: string
+    phone: string
+    relationship: string
+  }[]
 }
 
-export interface CreateDocumentForm {
-  name: string
-  description?: string
-  file_url?: string
-  file_type?: string
-  file_size?: number
-  program_id?: string
-  document_type: DocumentType
-  is_required?: boolean
+// API Response types
+export interface ApiResponse<T> {
+  data?: T
+  error?: string
+  message?: string
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }

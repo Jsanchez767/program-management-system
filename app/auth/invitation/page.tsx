@@ -102,21 +102,20 @@ function InvitationContent() {
         if (!signUpData.user) throw new Error("Failed to create user")
 
         userId = signUpData.user.id
-      }
 
-      // Create or update profile with organization
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: userId,
-          email: email,
-          first_name: firstName,
-          last_name: lastName,
-          role: invitation.role,
-          organization_id: invitation.organization_id
+        // Update user metadata instead of creating profile
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            role: invitation.role,
+            organization_id: invitation.organization_id,
+            organization_name: invitation.organization?.name
+          }
         })
 
-      if (profileError) throw profileError
+        if (updateError) throw updateError
+      }
 
       // Mark invitation as accepted
       const { error: acceptError } = await supabase

@@ -20,24 +20,19 @@ export default function AdminFieldTripsPage() {
       try {
         const supabase = createClient()
         
-        // Get current user and their organization
+        // Get current user and their organization from metadata
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        // Get user's profile to get organization_id
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('organization_id')
-          .eq('id', user.id)
-          .single()
-
-        if (!profile?.organization_id) return
+        // Get organization_id from user metadata
+        const organizationId = user.user_metadata?.organization_id
+        if (!organizationId) return
 
         // Fetch field trips for this organization
         const { data: fieldTripsData } = await supabase
           .from('field_trips')
           .select('*')
-          .eq('organization_id', profile.organization_id)
+          .eq('organization_id', organizationId)
           .order('trip_date', { ascending: true })
 
         setFieldTrips(fieldTripsData || [])

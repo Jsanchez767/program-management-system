@@ -1,14 +1,20 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Profile, Program, ProgramParticipant, Announcement, Document, LessonPlan, PurchaseOrder, FieldTrip } from '@/lib/types/database'
+import type { Program, ProgramParticipant, Announcement, Document, LessonPlan, PurchaseOrder, FieldTrip } from '@/lib/types/database'
 
+// Updated Database type without profiles table
 type Database = {
   public: {
     Tables: {
-      profiles: {
-        Row: Profile
-        Insert: Omit<Profile, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Profile, 'id' | 'created_at'>>
+      organizations: {
+        Row: {
+          id: string
+          name: string
+          subdomain: string
+          admin_id: string
+          created_at: string
+          updated_at: string
+        }
       }
       programs: {
         Row: Program
@@ -49,16 +55,25 @@ type Database = {
   }
 }
 
-export function createClient() {
-  const cookieStore = cookies()
-
+function createClient() {
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        getAll() {
+          return cookies().getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookies().set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
         },
       },
     }
@@ -66,91 +81,59 @@ export function createClient() {
 }
 
 // =============================================================================
-// DASHBOARD OPERATIONS
+// USER METADATA OPERATIONS
 // =============================================================================
 
-export async function getDashboardStats() {
-  const supabase = createClient()
-  
-  try {
-    // Get total programs
-    const { count: totalPrograms } = await supabase
-      .from('programs')
-      .select('*', { count: 'exact', head: true })
-
-    // Get total participants
-    const { count: totalParticipants } = await supabase
-      .from('program_participants')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'active')
-
-    // Get active announcements
-    const { count: activeAnnouncements } = await supabase
-      .from('announcements')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_published', true)
-      .gte('expires_at', new Date().toISOString())
-
-    // Get pending documents
-    const { count: pendingDocuments } = await supabase
-      .from('documents')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending')
-
-    return {
-      totalPrograms: totalPrograms || 0,
-      totalParticipants: totalParticipants || 0,
-      activeAnnouncements: activeAnnouncements || 0,
-      pendingDocuments: pendingDocuments || 0,
-    }
-  } catch (error) {
-    console.error('Error fetching dashboard stats:', error)
-    return {
-      totalPrograms: 0,
-      totalParticipants: 0,
-      activeAnnouncements: 0,
-      pendingDocuments: 0,
-    }
-  }
+export interface UserMetadata {
+  id: string
+  email: string
+  first_name?: string
+  last_name?: string
+  role?: 'admin' | 'instructor' | 'student'
+  organization_id?: string
+  organization_name?: string
 }
 
-// =============================================================================
-// PROFILE OPERATIONS
-// =============================================================================
-
-export async function getCurrentUserProfile(): Promise<Profile | null> {
+export async function getCurrentUserMetadata(): Promise<UserMetadata | null> {
   const supabase = createClient()
   
   try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    return profile || null
+    return {
+      id: user.id,
+      email: user.email || '',
+      first_name: user.user_metadata?.first_name,
+      last_name: user.user_metadata?.last_name,
+      role: user.user_metadata?.role,
+      organization_id: user.user_metadata?.organization_id,
+      organization_name: user.user_metadata?.organization_name
+    }
   } catch (error) {
-    console.error('Error fetching user profile:', error)
+    console.error('Error fetching user metadata:', error)
     return null
   }
 }
 
-export async function getProfilesByRole(role: Profile['role']): Promise<Profile[]> {
+export async function getInstructorsByOrganization(organizationId: string): Promise<any[]> {
   const supabase = createClient()
   
   try {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('role', role)
-      .order('first_name', { ascending: true })
+    // Use our RPC function to get instructors for the organization
+    const { data: instructors, error } = await supabase
+      .rpc('get_instructors_for_organization', { 
+        org_id: organizationId 
+      } as any)
 
-    return profiles || []
+    if (error) {
+      console.error('Error fetching instructors:', error)
+      return []
+    }
+
+    return instructors || []
   } catch (error) {
-    console.error('Error fetching profiles by role:', error)
+    console.error('Error fetching instructors by organization:', error)
     return []
   }
 }
@@ -159,20 +142,14 @@ export async function getProfilesByRole(role: Profile['role']): Promise<Profile[
 // PROGRAM OPERATIONS
 // =============================================================================
 
-export async function getAllPrograms(): Promise<Program[]> {
+export async function getPrograms(): Promise<Program[]> {
   const supabase = createClient()
   
   try {
     const { data: programs } = await supabase
       .from('programs')
       .select(`
-        *,
-        instructor:profiles!programs_instructor_id_fkey(
-          id,
-          first_name,
-          last_name,
-          email
-        )
+        *
       `)
       .order('created_at', { ascending: false })
 
@@ -190,13 +167,7 @@ export async function getProgramById(id: string): Promise<Program | null> {
     const { data: program } = await supabase
       .from('programs')
       .select(`
-        *,
-        instructor:profiles!programs_instructor_id_fkey(
-          id,
-          first_name,
-          last_name,
-          email
-        )
+        *
       `)
       .eq('id', id)
       .single()
@@ -208,29 +179,19 @@ export async function getProgramById(id: string): Promise<Program | null> {
   }
 }
 
+// =============================================================================
+// PROGRAM PARTICIPANTS OPERATIONS
+// =============================================================================
+
 export async function getProgramParticipants(programId: string): Promise<ProgramParticipant[]> {
   const supabase = createClient()
   
   try {
     const { data: participants } = await supabase
       .from('program_participants')
-      .select(`
-        *,
-        student:profiles!program_participants_student_id_fkey(
-          id,
-          first_name,
-          last_name,
-          email,
-          phone
-        ),
-        program:programs!program_participants_program_id_fkey(
-          id,
-          name,
-          description
-        )
-      `)
+      .select('*')
       .eq('program_id', programId)
-      .order('enrolled_at', { ascending: false })
+      .order('enrolled_at', { ascending: true })
 
     return participants || []
   } catch (error) {
@@ -240,297 +201,227 @@ export async function getProgramParticipants(programId: string): Promise<Program
 }
 
 // =============================================================================
-// ANNOUNCEMENT OPERATIONS
+// ANNOUNCEMENTS OPERATIONS
 // =============================================================================
 
-export async function getActiveAnnouncements(): Promise<Announcement[]> {
+export async function getAnnouncements(): Promise<Announcement[]> {
   const supabase = createClient()
   
   try {
     const { data: announcements } = await supabase
       .from('announcements')
-      .select(`
-        *,
-        author:profiles!announcements_author_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!announcements_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .eq('is_published', true)
-      .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
+      .select('*')
       .order('created_at', { ascending: false })
 
     return announcements || []
   } catch (error) {
-    console.error('Error fetching active announcements:', error)
+    console.error('Error fetching announcements:', error)
     return []
   }
 }
 
-export async function getAllAnnouncements(): Promise<Announcement[]> {
+export async function getAnnouncementById(id: string): Promise<Announcement | null> {
   const supabase = createClient()
   
   try {
-    const { data: announcements } = await supabase
+    const { data: announcement } = await supabase
       .from('announcements')
-      .select(`
-        *,
-        author:profiles!announcements_author_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!announcements_program_id_fkey(
-          id,
-          name
-        )
-      `)
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    return announcement || null
+  } catch (error) {
+    console.error('Error fetching announcement:', error)
+    return null
+  }
+}
+
+// =============================================================================
+// DOCUMENTS OPERATIONS
+// =============================================================================
+
+export async function getDocuments(): Promise<Document[]> {
+  const supabase = createClient()
+  
+  try {
+    const { data: documents } = await supabase
+      .from('documents')
+      .select('*')
+      .order('uploaded_at', { ascending: false })
+
+    return documents || []
+  } catch (error) {
+    console.error('Error fetching documents:', error)
+    return []
+  }
+}
+
+export async function getDocumentById(id: string): Promise<Document | null> {
+  const supabase = createClient()
+  
+  try {
+    const { data: document } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    return document || null
+  } catch (error) {
+    console.error('Error fetching document:', error)
+    return null
+  }
+}
+
+// =============================================================================
+// LESSON PLANS OPERATIONS
+// =============================================================================
+
+export async function getLessonPlans(): Promise<LessonPlan[]> {
+  const supabase = createClient()
+  
+  try {
+    const { data: lessonPlans } = await supabase
+      .from('lesson_plans')
+      .select('*')
+      .order('date', { ascending: false })
+
+    return lessonPlans || []
+  } catch (error) {
+    console.error('Error fetching lesson plans:', error)
+    return []
+  }
+}
+
+export async function getLessonPlanById(id: string): Promise<LessonPlan | null> {
+  const supabase = createClient()
+  
+  try {
+    const { data: lessonPlan } = await supabase
+      .from('lesson_plans')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    return lessonPlan || null
+  } catch (error) {
+    console.error('Error fetching lesson plan:', error)
+    return null
+  }
+}
+
+// =============================================================================
+// PURCHASE ORDERS OPERATIONS
+// =============================================================================
+
+export async function getPurchaseOrders(): Promise<PurchaseOrder[]> {
+  const supabase = createClient()
+  
+  try {
+    const { data: purchaseOrders } = await supabase
+      .from('purchase_orders')
+      .select('*')
       .order('created_at', { ascending: false })
 
-    return announcements || []
-  } catch (error) {
-    console.error('Error fetching all announcements:', error)
-    return []
-  }
-}
-
-// =============================================================================
-// DOCUMENT OPERATIONS
-// =============================================================================
-
-export async function getDocumentsByStudent(studentId: string): Promise<Document[]> {
-  const supabase = createClient()
-  
-  try {
-    const { data: documents } = await supabase
-      .from('documents')
-      .select(`
-        *,
-        student:profiles!documents_student_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!documents_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .eq('student_id', studentId)
-      .order('uploaded_at', { ascending: false })
-
-    return documents || []
-  } catch (error) {
-    console.error('Error fetching documents by student:', error)
-    return []
-  }
-}
-
-export async function getAllDocuments(): Promise<Document[]> {
-  const supabase = createClient()
-  
-  try {
-    const { data: documents } = await supabase
-      .from('documents')
-      .select(`
-        *,
-        student:profiles!documents_student_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!documents_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .order('uploaded_at', { ascending: false })
-
-    return documents || []
-  } catch (error) {
-    console.error('Error fetching all documents:', error)
-    return []
-  }
-}
-
-// =============================================================================
-// LESSON PLAN OPERATIONS
-// =============================================================================
-
-export async function getLessonPlansByInstructor(instructorId: string): Promise<LessonPlan[]> {
-  const supabase = createClient()
-  
-  try {
-    const { data: lessonPlans } = await supabase
-      .from('lesson_plans')
-      .select(`
-        *,
-        instructor:profiles!lesson_plans_instructor_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!lesson_plans_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .eq('instructor_id', instructorId)
-      .order('lesson_date', { ascending: false })
-
-    return lessonPlans || []
-  } catch (error) {
-    console.error('Error fetching lesson plans by instructor:', error)
-    return []
-  }
-}
-
-export async function getAllLessonPlans(): Promise<LessonPlan[]> {
-  const supabase = createClient()
-  
-  try {
-    const { data: lessonPlans } = await supabase
-      .from('lesson_plans')
-      .select(`
-        *,
-        instructor:profiles!lesson_plans_instructor_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!lesson_plans_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .order('lesson_date', { ascending: false })
-
-    return lessonPlans || []
-  } catch (error) {
-    console.error('Error fetching all lesson plans:', error)
-    return []
-  }
-}
-
-// =============================================================================
-// PURCHASE ORDER OPERATIONS
-// =============================================================================
-
-export async function getPurchaseOrdersByInstructor(instructorId: string): Promise<PurchaseOrder[]> {
-  const supabase = createClient()
-  
-  try {
-    const { data: purchaseOrders } = await supabase
-      .from('purchase_orders')
-      .select(`
-        *,
-        instructor:profiles!purchase_orders_instructor_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!purchase_orders_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .eq('instructor_id', instructorId)
-      .order('requested_date', { ascending: false })
-
     return purchaseOrders || []
   } catch (error) {
-    console.error('Error fetching purchase orders by instructor:', error)
+    console.error('Error fetching purchase orders:', error)
     return []
   }
 }
 
-export async function getAllPurchaseOrders(): Promise<PurchaseOrder[]> {
+export async function getPurchaseOrderById(id: string): Promise<PurchaseOrder | null> {
   const supabase = createClient()
   
   try {
-    const { data: purchaseOrders } = await supabase
+    const { data: purchaseOrder } = await supabase
       .from('purchase_orders')
-      .select(`
-        *,
-        instructor:profiles!purchase_orders_instructor_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!purchase_orders_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .order('requested_date', { ascending: false })
+      .select('*')
+      .eq('id', id)
+      .single()
 
-    return purchaseOrders || []
+    return purchaseOrder || null
   } catch (error) {
-    console.error('Error fetching all purchase orders:', error)
-    return []
+    console.error('Error fetching purchase order:', error)
+    return null
   }
 }
 
 // =============================================================================
-// FIELD TRIP OPERATIONS
+// FIELD TRIPS OPERATIONS
 // =============================================================================
 
-export async function getFieldTripsByInstructor(instructorId: string): Promise<FieldTrip[]> {
+export async function getFieldTrips(): Promise<FieldTrip[]> {
   const supabase = createClient()
   
   try {
     const { data: fieldTrips } = await supabase
       .from('field_trips')
-      .select(`
-        *,
-        instructor:profiles!field_trips_instructor_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!field_trips_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .eq('instructor_id', instructorId)
-      .order('trip_date', { ascending: false })
+      .select('*')
+      .order('date', { ascending: false })
 
     return fieldTrips || []
   } catch (error) {
-    console.error('Error fetching field trips by instructor:', error)
+    console.error('Error fetching field trips:', error)
     return []
   }
 }
 
-export async function getAllFieldTrips(): Promise<FieldTrip[]> {
+export async function getFieldTripById(id: string): Promise<FieldTrip | null> {
   const supabase = createClient()
   
   try {
-    const { data: fieldTrips } = await supabase
+    const { data: fieldTrip } = await supabase
       .from('field_trips')
-      .select(`
-        *,
-        instructor:profiles!field_trips_instructor_id_fkey(
-          id,
-          first_name,
-          last_name
-        ),
-        program:programs!field_trips_program_id_fkey(
-          id,
-          name
-        )
-      `)
-      .order('trip_date', { ascending: false })
+      .select('*')
+      .eq('id', id)
+      .single()
 
-    return fieldTrips || []
+    return fieldTrip || null
   } catch (error) {
-    console.error('Error fetching all field trips:', error)
-    return []
+    console.error('Error fetching field trip:', error)
+    return null
+  }
+}
+
+// =============================================================================
+// ANALYTICS OPERATIONS
+// =============================================================================
+
+export async function getAnalytics() {
+  const supabase = createClient()
+  
+  try {
+    // Use RPC function for analytics
+    const { data: analytics, error } = await supabase
+      .rpc('get_organization_analytics', {
+        org_id: ''  // Will be filled by RLS based on user's organization
+      } as any)
+
+    if (error) {
+      console.error('Error fetching analytics:', error)
+      return {
+        totalPrograms: 0,
+        totalParticipants: 0,
+        totalInstructors: 0,
+        totalStudents: 0
+      }
+    }
+
+    return analytics || {
+      totalPrograms: 0,
+      totalParticipants: 0,
+      totalInstructors: 0,
+      totalStudents: 0
+    }
+  } catch (error) {
+    console.error('Error fetching analytics:', error)
+    return {
+      totalPrograms: 0,
+      totalParticipants: 0,
+      totalInstructors: 0,
+      totalStudents: 0
+    }
   }
 }

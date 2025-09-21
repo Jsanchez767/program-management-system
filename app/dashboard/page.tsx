@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import type { Profile } from "@/lib/types/database"
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)

@@ -11,10 +11,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Send, Copy, CheckCircle, XCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import type { OrganizationInvitation, Organization } from "@/lib/types/database"
+import type { OrganizationInvite, Organization } from "@/lib/types/database"
 
 export default function InvitationsPage() {
-  const [invitations, setInvitations] = useState<OrganizationInvitation[]>([])
+  const [invitations, setInvitations] = useState<OrganizationInvite[]>([])
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [email, setEmail] = useState("")
   const [role, setRole] = useState("student")
@@ -33,17 +33,13 @@ export default function InvitationsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.organization_id) {
+      // Get organization_id from user metadata
+      const organizationId = user.user_metadata?.organization_id
+      if (organizationId) {
         const { data: org } = await supabase
           .from('organizations')
           .select('*')
-          .eq('id', profile.organization_id)
+          .eq('id', organizationId)
           .single()
         
         setOrganization(org)
@@ -165,7 +161,7 @@ export default function InvitationsPage() {
     }
   }
 
-  const getStatusBadge = (invitation: OrganizationInvitation) => {
+  const getStatusBadge = (invitation: OrganizationInvite) => {
     if (invitation.accepted_at) {
       return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Accepted</Badge>
     }

@@ -29,24 +29,96 @@ export default function SignUpPage() {
     setIsLoading(true)
     setError(null)
 
+    // Get the actual form element
+    const form = e.target as HTMLFormElement
+    
+    // Get all input values directly from the DOM to handle autofill and browser quirks
+    const emailInput = form.querySelector('#email') as HTMLInputElement
+    const passwordInput = form.querySelector('#password') as HTMLInputElement
+    const firstNameInput = form.querySelector('#firstName') as HTMLInputElement
+    const lastNameInput = form.querySelector('#lastName') as HTMLInputElement
+    const organizationNameInput = form.querySelector('#organizationName') as HTMLInputElement
+
+    // Get actual values from inputs
+    const actualEmail = emailInput?.value || ''
+    const actualPassword = passwordInput?.value || ''
+    const actualFirstName = firstNameInput?.value || ''
+    const actualLastName = lastNameInput?.value || ''
+    const actualOrganizationName = organizationNameInput?.value || ''
+
+    // Get form data directly from the form to handle autofill
+    const formData = new FormData(form)
+    const formEmail = formData.get('email') as string
+    const formPassword = formData.get('password') as string
+    const formFirstName = formData.get('firstName') as string
+    const formLastName = formData.get('lastName') as string
+    const formOrganizationName = formData.get('organizationName') as string
+    const formRole = formData.get('role') as string
+
+    // Debug: log all form data
+    console.log('Raw FormData entries:')
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}: ${key === 'password' ? '***' : value}`)
+    }
+
+    // Use the most reliable source for each field
+    const finalEmail = actualEmail || email || formEmail
+    const finalPassword = actualPassword || password || formPassword
+    const finalFirstName = actualFirstName || firstName || formFirstName
+    const finalLastName = actualLastName || lastName || formLastName
+    const finalOrganizationName = actualOrganizationName || organizationName || formOrganizationName
+    const finalRole = role // Always use state for role since Select doesn't work with FormData
+
     try {
       // Validate organization name for admins
-      if (role === 'admin' && !organizationName.trim()) {
+      if (finalRole === 'admin' && !finalOrganizationName.trim()) {
         throw new Error('Organization name is required for admin accounts')
       }
 
-      console.log('Starting signup process...', { email, role, firstName, lastName, organizationName })
+      console.log('Starting signup process...', { 
+        finalValues: {
+          email: finalEmail, 
+          role: finalRole, 
+          firstName: finalFirstName, 
+          lastName: finalLastName, 
+          organizationName: finalOrganizationName,
+          password: finalPassword ? '***' : 'EMPTY'
+        },
+        stateValues: {
+          email, 
+          role, 
+          firstName, 
+          lastName, 
+          organizationName,
+          password: password ? '***' : 'EMPTY'
+        },
+        actualDOMValues: {
+          email: actualEmail,
+          password: actualPassword ? '***' : 'EMPTY',
+          firstName: actualFirstName,
+          lastName: actualLastName,
+          organizationName: actualOrganizationName
+        },
+        formDataValues: {
+          email: formEmail,
+          password: formPassword ? '***' : 'EMPTY',
+          firstName: formFirstName,
+          lastName: formLastName,
+          organizationName: formOrganizationName,
+          role: formRole
+        }
+      })
 
       // Sign up the user
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: finalEmail,
+        password: finalPassword,
         options: {
           data: {
-            first_name: firstName,
-            last_name: lastName,
-            role: role,
-            organization_name: role === 'admin' ? organizationName : null
+            first_name: finalFirstName,
+            last_name: finalLastName,
+            role: finalRole,
+            organization_name: finalRole === 'admin' ? finalOrganizationName : null
           }
         }
       })
@@ -141,6 +213,8 @@ export default function SignUpPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp} className="space-y-4">
+              {/* Hidden input for role to ensure FormData captures it */}
+              <input type="hidden" name="role" value={role} />
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-sm font-medium">
@@ -148,11 +222,13 @@ export default function SignUpPage() {
                   </Label>
                   <Input
                     id="firstName"
+                    name="firstName"
                     type="text"
                     placeholder="John"
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                    autoComplete="given-name"
                     className="h-10"
                   />
                 </div>
@@ -162,11 +238,13 @@ export default function SignUpPage() {
                   </Label>
                   <Input
                     id="lastName"
+                    name="lastName"
                     type="text"
                     placeholder="Doe"
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
+                    autoComplete="family-name"
                     className="h-10"
                   />
                 </div>
@@ -177,11 +255,13 @@ export default function SignUpPage() {
                 </Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="name@company.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
                   className="h-10"
                 />
               </div>
@@ -189,8 +269,8 @@ export default function SignUpPage() {
                 <Label htmlFor="role" className="text-sm font-medium">
                   Role
                 </Label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger className="h-10">
+                <Select value={role} onValueChange={setRole} name="role">
+                  <SelectTrigger id="role" className="h-10">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -207,11 +287,13 @@ export default function SignUpPage() {
                   </Label>
                   <Input
                     id="organizationName"
+                    name="organizationName"
                     type="text"
                     placeholder="Your Organization Name"
                     required={role === 'admin'}
                     value={organizationName}
                     onChange={(e) => setOrganizationName(e.target.value)}
+                    autoComplete="organization"
                     className="h-10"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -225,11 +307,13 @@ export default function SignUpPage() {
                 </Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   placeholder="Create a strong password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   className="h-10"
                 />
               </div>
