@@ -9,6 +9,9 @@ import { createClient } from "@/lib/supabase/client"
 import type { Program } from "@/lib/types/database"
 import { useEffect, useState } from "react"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default function AdminProgramsPage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [isLoading, setIsLoading] = useState(true)

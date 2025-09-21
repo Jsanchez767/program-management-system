@@ -8,6 +8,9 @@ import { createClient } from "@/lib/supabase/client"
 import type { FieldTrip } from "@/lib/types/database"
 import { useEffect, useState } from "react"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default function AdminFieldTripsPage() {
   const [fieldTrips, setFieldTrips] = useState<FieldTrip[]>([])
   const [isLoading, setIsLoading] = useState(true)

@@ -204,7 +204,7 @@ export default function SignUpPage() {
                     id="organizationName"
                     type="text"
                     placeholder="Your Organization Name"
-                    required
+                    required={role === 'admin'}
                     value={organizationName}
                     onChange={(e) => setOrganizationName(e.target.value)}
                     className="h-10"

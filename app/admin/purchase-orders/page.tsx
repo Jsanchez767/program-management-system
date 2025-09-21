@@ -8,6 +8,9 @@ import { createClient } from "@/lib/supabase/client"
 import type { PurchaseOrder } from "@/lib/types/database"
 import { useEffect, useState } from "react"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default function AdminPurchaseOrdersPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
   const [isLoading, setIsLoading] = useState(true)
