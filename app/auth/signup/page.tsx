@@ -18,6 +18,7 @@ export default function SignUpPage() {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [role, setRole] = useState("student")
+  const [organizationName, setOrganizationName] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -29,6 +30,11 @@ export default function SignUpPage() {
     setError(null)
 
     try {
+      // Validate organization name for admins
+      if (role === 'admin' && !organizationName.trim()) {
+        throw new Error('Organization name is required for admin accounts')
+      }
+
       // Sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -45,25 +51,64 @@ export default function SignUpPage() {
       
       if (error) throw error
 
-      // For development/testing - create profile immediately if email confirmation is disabled
+      // For development/testing - create profile and organization immediately if email confirmation is disabled
       if (data.user?.id) {
         try {
-          console.log('Creating profile for user:', data.user.id)
+          console.log('Creating organization and profile for user:', data.user.id)
+          
+          let organizationId = null
+          
+          // Create organization if user is admin
+          if (role === 'admin') {
+            console.log('Attempting to create organization:', organizationName)
+            const subdomain = organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+            console.log('Generated subdomain:', subdomain)
+            
+            const { data: orgData, error: orgError } = await supabase
+              .from('organizations')
+              .insert({
+                name: organizationName,
+                subdomain: subdomain,
+                admin_id: data.user.id
+              })
+              .select()
+              .single()
+            
+            if (orgError) {
+              console.error('Organization creation error:', orgError)
+              console.error('Error code:', orgError.code)
+              console.error('Error message:', orgError.message)
+              console.error('Error details:', orgError.details)
+              throw new Error(`Failed to create organization: ${orgError.message}`)
+            } else {
+              console.log('Organization created successfully:', orgData)
+              organizationId = orgData.id
+            }
+          }
+          
+          // Create profile
+          console.log('Attempting to create profile for user:', data.user.id)
           const { error: profileError } = await supabase.from('profiles').insert({
             id: data.user.id,
             email: email,
             first_name: firstName,
             last_name: lastName,
-            role: email === 'jsanchez@maticslab.com' ? 'admin' : role
+            role: role,
+            organization_id: organizationId
           })
           
           if (profileError) {
             console.error('Profile creation error:', profileError)
+            console.error('Profile error code:', profileError.code)
+            console.error('Profile error message:', profileError.message)
+            console.error('Profile error details:', profileError.details)
+            throw new Error(`Failed to create user profile: ${profileError.message}`)
           } else {
             console.log('Profile created successfully')
           }
         } catch (profileError) {
-          console.log('Profile creation failed:', profileError)
+          console.log('Profile/Organization creation failed:', profileError)
+          throw profileError
         }
       }
 
@@ -150,6 +195,25 @@ export default function SignUpPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {role === 'admin' && (
+                <div className="space-y-2">
+                  <Label htmlFor="organizationName" className="text-sm font-medium">
+                    Organization Name
+                  </Label>
+                  <Input
+                    id="organizationName"
+                    type="text"
+                    placeholder="Your Organization Name"
+                    required
+                    value={organizationName}
+                    onChange={(e) => setOrganizationName(e.target.value)}
+                    className="h-10"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This will be your workspace name that others can join
+                  </p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">
                   Password

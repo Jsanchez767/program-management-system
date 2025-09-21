@@ -59,6 +59,18 @@ export default function NewProgramPage() {
     setError(null)
 
     try {
+      // Get current user's organization_id
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No authenticated user')
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile?.organization_id) throw new Error('No organization found for user')
+
       const { error: insertError } = await supabase.from("programs").insert([
         {
           name: formData.name,
@@ -70,6 +82,7 @@ export default function NewProgramPage() {
           instructor_id: formData.instructor_id || null,
           status: formData.status,
           current_participants: 0,
+          organization_id: profile.organization_id,
         },
       ])
 

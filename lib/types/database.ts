@@ -19,7 +19,31 @@ export type PurchaseOrderStatus = 'draft' | 'submitted' | 'approved' | 'rejected
 
 export type FieldTripStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'scheduled' | 'completed' | 'cancelled'
 
-// Database table interfaces - Updated to match schema
+// Multi-tenancy interfaces - Updated to match actual Supabase schema
+export interface Organization {
+  id: string
+  name: string
+  subdomain: string
+  admin_id: string
+  settings?: any // jsonb field
+  created_at: string
+  updated_at: string
+}
+
+export interface OrganizationInvitation {
+  id: string
+  organization_id: string
+  email: string
+  role: UserRole
+  invited_by: string
+  token: string
+  accepted_at?: string
+  expires_at: string
+  created_at: string
+  organization?: Organization
+}
+
+// Database table interfaces - Updated to match schema with organization support
 export interface Profile {
   id: string
   email: string
@@ -27,6 +51,7 @@ export interface Profile {
   last_name?: string
   role: UserRole
   phone?: string
+  organization_id?: string
   created_at: string
   updated_at: string
 }
@@ -42,6 +67,10 @@ export interface Program {
   current_participants: number
   instructor_id?: string
   status: ProgramStatus
+  meeting_days?: string
+  meeting_time?: string
+  room_location?: string
+  organization_id: string
   created_at: string
   updated_at: string
 }
