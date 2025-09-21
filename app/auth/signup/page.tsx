@@ -88,7 +88,17 @@ export default function SignUpPage() {
             } else {
               console.log('Organization created successfully:', orgData)
               organizationId = orgData.id
+              
+              // Validate organization was created with valid ID
+              if (!organizationId) {
+                throw new Error('Organization creation failed - no ID returned')
+              }
             }
+          }
+          
+          // Validate admin has organization before creating profile
+          if (role === 'admin' && !organizationId) {
+            throw new Error('Cannot create admin profile - organization creation failed')
           }
           
           // Create profile
@@ -142,6 +152,21 @@ export default function SignUpPage() {
             } else {
               console.log('Profile created successfully')
             }
+          }
+          
+          // Final verification for admin accounts
+          if (role === 'admin') {
+            const { data: finalProfile, error: verifyError } = await supabase
+              .from('profiles')
+              .select('organization_id')
+              .eq('id', data.user.id)
+              .single()
+            
+            if (verifyError || !finalProfile?.organization_id) {
+              throw new Error('Account created but organization link failed. Please contact support.')
+            }
+            
+            console.log('✅ Admin account setup completed with organization link verified')
           }
         } catch (profileError) {
           console.log('Profile/Organization creation failed:', profileError)
