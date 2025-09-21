@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CheckCircle, XCircle } from "lucide-react"
 import type { OrganizationInvitation } from "@/lib/types/database"
 
-export default function InvitationPage() {
+function InvitationContent() {
   const [invitation, setInvitation] = useState<OrganizationInvitation | null>(null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -273,5 +273,23 @@ export default function InvitationPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function InvitationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <InvitationContent />
+    </Suspense>
   )
 }
