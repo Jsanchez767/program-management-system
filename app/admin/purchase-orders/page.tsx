@@ -1,11 +1,52 @@
+"use client"
+
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getAllPurchaseOrders } from "@/lib/database/operations"
+import { createClient } from "@/lib/supabase/client"
+import type { PurchaseOrder } from "@/lib/types/database"
+import { useEffect, useState } from "react"
 
-export default async function AdminPurchaseOrdersPage() {
-  const purchaseOrders = await getAllPurchaseOrders()
+export default function AdminPurchaseOrdersPage() {
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchPurchaseOrders() {
+      try {
+        const supabase = createClient()
+        
+        // Get current user and their organization
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Get user's profile to get organization_id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile?.organization_id) return
+
+        // Fetch purchase orders for this organization
+        const { data: purchaseOrdersData } = await supabase
+          .from('purchase_orders')
+          .select('*')
+          .eq('organization_id', profile.organization_id)
+          .order('created_at', { ascending: false })
+
+        setPurchaseOrders(purchaseOrdersData || [])
+      } catch (error) {
+        console.error('Error fetching purchase orders:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPurchaseOrders()
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {

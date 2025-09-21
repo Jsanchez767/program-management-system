@@ -1,11 +1,52 @@
+"use client"
+
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getAllFieldTrips } from "@/lib/database/operations"
+import { createClient } from "@/lib/supabase/client"
+import type { FieldTrip } from "@/lib/types/database"
+import { useEffect, useState } from "react"
 
-export default async function AdminFieldTripsPage() {
-  const fieldTrips = await getAllFieldTrips()
+export default function AdminFieldTripsPage() {
+  const [fieldTrips, setFieldTrips] = useState<FieldTrip[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchFieldTrips() {
+      try {
+        const supabase = createClient()
+        
+        // Get current user and their organization
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Get user's profile to get organization_id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile?.organization_id) return
+
+        // Fetch field trips for this organization
+        const { data: fieldTripsData } = await supabase
+          .from('field_trips')
+          .select('*')
+          .eq('organization_id', profile.organization_id)
+          .order('trip_date', { ascending: true })
+
+        setFieldTrips(fieldTripsData || [])
+      } catch (error) {
+        console.error('Error fetching field trips:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchFieldTrips()
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {

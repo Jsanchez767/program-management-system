@@ -4,7 +4,7 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { StatsCard } from "@/components/admin/stats-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, BookOpen, ShoppingCart, FileText, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react"
-import { getDashboardStats, getAllPrograms } from "@/lib/database/operations"
+import { createClient } from "@/lib/supabase/client"
 import type { ProgramWithInstructor } from "@/lib/types/database"
 import { useEffect, useState } from "react"
 
@@ -23,14 +23,65 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const [stats, recentPrograms] = await Promise.all([
-          getDashboardStats(),
-          getAllPrograms()
+        const supabase = createClient()
+        
+        // Get current user and their organization
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Get user's profile to get organization_id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile?.organization_id) return
+
+        // Fetch dashboard stats
+        const [programsData, participantsData, announcementsData, documentsData] = await Promise.all([
+          supabase
+            .from('programs')
+            .select('id')
+            .eq('organization_id', profile.organization_id),
+          supabase
+            .from('program_participants')
+            .select('id, programs!inner(organization_id)')
+            .eq('programs.organization_id', profile.organization_id),
+          supabase
+            .from('announcements')
+            .select('id')
+            .eq('organization_id', profile.organization_id)
+            .eq('is_active', true),
+          supabase
+            .from('documents')
+            .select('id')
+            .eq('organization_id', profile.organization_id)
+            .eq('status', 'pending')
         ])
 
+        // Get recent programs with instructor info
+        const { data: recentPrograms } = await supabase
+          .from('programs')
+          .select(`
+            *,
+            instructor:profiles!programs_instructor_id_fkey(
+              first_name,
+              last_name
+            )
+          `)
+          .eq('organization_id', profile.organization_id)
+          .order('created_at', { ascending: false })
+          .limit(5)
+
         setDashboardData({
-          stats,
-          recentPrograms: recentPrograms.slice(0, 5) // Get first 5 programs
+          stats: {
+            totalPrograms: programsData.data?.length || 0,
+            totalParticipants: participantsData.data?.length || 0,
+            activeAnnouncements: announcementsData.data?.length || 0,
+            pendingDocuments: documentsData.data?.length || 0
+          },
+          recentPrograms: recentPrograms || []
         })
       } catch (error) {
         console.error('Error fetching dashboard data:', error)

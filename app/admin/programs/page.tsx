@@ -1,13 +1,59 @@
+"use client"
+
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { getAllPrograms } from "@/lib/database/operations"
+import { createClient } from "@/lib/supabase/client"
 import type { Program } from "@/lib/types/database"
+import { useEffect, useState } from "react"
 
-export default async function AdminProgramsPage() {
-  const programs = await getAllPrograms()
+export default function AdminProgramsPage() {
+  const [programs, setPrograms] = useState<Program[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchPrograms() {
+      try {
+        const supabase = createClient()
+        
+        // Get current user and their organization
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        // Get user's profile to get organization_id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile?.organization_id) return
+
+        // Fetch programs for this organization
+        const { data: programsData } = await supabase
+          .from('programs')
+          .select(`
+            *,
+            instructor:profiles!programs_instructor_id_fkey(
+              first_name,
+              last_name
+            )
+          `)
+          .eq('organization_id', profile.organization_id)
+          .order('created_at', { ascending: false })
+
+        setPrograms(programsData || [])
+      } catch (error) {
+        console.error('Error fetching programs:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPrograms()
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -44,7 +90,15 @@ export default async function AdminProgramsPage() {
 
           {/* Programs Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {programs && programs.length > 0 ? (
+            {isLoading ? (
+              [...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-32 bg-muted rounded"></div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : programs && programs.length > 0 ? (
               programs.map((program: any) => (
                 <Card key={program.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
