@@ -49,7 +49,12 @@ export default function SignUpPage() {
         },
       })
       
-      if (error) throw error
+      if (error) {
+        if (error.message.includes('already registered')) {
+          throw new Error('An account with this email already exists. Please sign in instead.')
+        }
+        throw error
+      }
 
       // For development/testing - create profile and organization immediately if email confirmation is disabled
       if (data.user?.id) {
@@ -88,23 +93,55 @@ export default function SignUpPage() {
           
           // Create profile
           console.log('Attempting to create profile for user:', data.user.id)
-          const { error: profileError } = await supabase.from('profiles').insert({
-            id: data.user.id,
-            email: email,
-            first_name: firstName,
-            last_name: lastName,
-            role: role,
-            organization_id: organizationId
-          })
           
-          if (profileError) {
-            console.error('Profile creation error:', profileError)
-            console.error('Profile error code:', profileError.code)
-            console.error('Profile error message:', profileError.message)
-            console.error('Profile error details:', profileError.details)
-            throw new Error(`Failed to create user profile: ${profileError.message}`)
+          // First check if profile already exists
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', data.user.id)
+            .single()
+          
+          if (existingProfile) {
+            console.log('Profile already exists, updating instead')
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({
+                email: email,
+                first_name: firstName,
+                last_name: lastName,
+                role: role,
+                organization_id: organizationId
+              })
+              .eq('id', data.user.id)
+            
+            if (updateError) {
+              console.error('Profile update error:', updateError)
+              throw new Error(`Failed to update user profile: ${updateError.message}`)
+            }
           } else {
-            console.log('Profile created successfully')
+            const { error: profileError } = await supabase.from('profiles').insert({
+              id: data.user.id,
+              email: email,
+              first_name: firstName,
+              last_name: lastName,
+              role: role,
+              organization_id: organizationId
+            })
+            
+            if (profileError) {
+              console.error('Profile creation error:', profileError)
+              console.error('Profile error code:', profileError.code)
+              console.error('Profile error message:', profileError.message)
+              console.error('Profile error details:', profileError.details)
+              
+              if (profileError.code === '23505') { // Duplicate key error
+                throw new Error('An account with this information already exists. Please try signing in instead.')
+              }
+              
+              throw new Error(`Failed to create user profile: ${profileError.message}`)
+            } else {
+              console.log('Profile created successfully')
+            }
           }
         } catch (profileError) {
           console.log('Profile/Organization creation failed:', profileError)
