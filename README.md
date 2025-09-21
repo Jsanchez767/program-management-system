@@ -1,6 +1,14 @@
 # Program Management System
 
-A comprehensive web application for managing educational programs, built with Next.js 14, TypeScript, and Supabase.
+A comprehensive multi-tenant program management system built with Next.js, Supabase, and TypeScript. Designed for educational institutions to manage programs, students, instructors, and administrative tasks with complete data isolation between organizations.
+
+## 🏗️ Architecture
+
+- **Frontend**: Next.js 14 with TypeScript
+- **Backend**: Supabase (PostgreSQL + Auth + Storage + Realtime)
+- **UI Components**: Tailwind CSS + shadcn/ui
+- **Authentication**: Supabase Auth with JWT user metadata
+- **Multi-tenancy**: Organization-based data isolation with RLS policies
 
 ## Features
 
@@ -89,6 +97,9 @@ The application uses a comprehensive database schema with the following main tab
    scripts/006_create_lesson_plans.sql
    scripts/007_create_purchase_orders.sql
    scripts/008_create_field_trips.sql
+   # Multi-tenant RLS policies (required for production)
+   scripts/010_multi_tenant_policies.sql
+   scripts/011_fix_rls_signup.sql
    ```
 
 5. **Run the development server**

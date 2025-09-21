@@ -39,14 +39,22 @@ export default function NewProgramPage() {
 
   useEffect(() => {
     async function loadInstructors() {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name")
-        .eq("role", "instructor")
-        .order("first_name")
+      try {
+        // Get current user's organization_id
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user?.user_metadata?.organization_id) return
 
-      if (data) {
-        setInstructors(data)
+        const organizationId = user.user_metadata.organization_id
+
+        // Use RPC function to get instructors from user metadata
+        const { data } = await supabase
+          .rpc('get_instructors_for_organization', { org_id: organizationId })
+
+        if (data) {
+          setInstructors(data)
+        }
+      } catch (error) {
+        console.error('Error loading instructors:', error)
       }
     }
 
@@ -59,17 +67,62 @@ export default function NewProgramPage() {
     setError(null)
 
     try {
-      // Get current user's organization_id
+      // Get current user's organization_id from metadata only
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No authenticated user')
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single()
+      let organizationId: string | null = user.user_metadata?.organization_id
 
-      if (!profile?.organization_id) throw new Error('No organization found for user')
+      // If user has no organization_id in metadata, create a unique organization
+      if (!organizationId) {
+        console.log('Creating unique organization for user - no organization_id in metadata')
+        
+        // Create a unique organization for this user
+        const userEmail = user.email || 'user'
+        const orgName = `${user.user_metadata?.first_name || 'User'}'s Organization`
+        const orgDomain = `${userEmail.split('@')[0]}-${Date.now()}.local`
+        
+        const { data: newOrg, error: orgError } = await supabase
+          .from('organizations')
+          .insert({
+            name: orgName,
+            domain: orgDomain,
+            admin_id: user.id,
+            settings: {
+              allow_self_registration: true,
+              default_role: 'student',
+              features: {
+                custom_fields: true,
+                analytics: true,
+                realtime: true
+              }
+            }
+          })
+          .select()
+          .single()
+
+        if (orgError) {
+          console.error('Failed to create organization:', orgError)
+          throw new Error('Failed to setup organization. Please contact support.')
+        }
+
+        organizationId = newOrg.id
+
+        // Update user metadata with organization_id
+        await supabase.auth.updateUser({
+          data: {
+            ...user.user_metadata,
+            organization_id: organizationId,
+            role: user.user_metadata?.role || 'admin' // Ensure role is set
+          }
+        })
+
+        console.log('✅ Default organization created and assigned to user metadata')
+      }
+
+      if (!organizationId) {
+        throw new Error('Unable to determine organization. Please contact support.')
+      }
 
       const { error: insertError } = await supabase.from("programs").insert([
         {
@@ -82,7 +135,7 @@ export default function NewProgramPage() {
           instructor_id: formData.instructor_id || null,
           status: formData.status,
           current_participants: 0,
-          organization_id: profile.organization_id,
+          organization_id: organizationId,
         },
       ])
 

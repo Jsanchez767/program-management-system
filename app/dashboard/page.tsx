@@ -22,21 +22,11 @@ export default function DashboardPage() {
           return
         }
 
-        // Get user profile to determine role
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single()
-
-        if (profileError || !profile) {
-          // If no profile exists, redirect to signup to complete profile
-          router.push("/auth/signup")
-          return
-        }
+        // Get user profile to determine role from user metadata
+        const userRole = user.user_metadata?.role || 'student'
 
         // Redirect based on user role
-        switch (profile.role) {
+        switch (userRole) {
           case 'admin':
             router.push("/admin")
             break

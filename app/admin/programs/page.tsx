@@ -21,33 +21,40 @@ export default function AdminProgramsPage() {
       try {
         const supabase = createClient()
         
-        // Get current user and their organization
+        // Get current user and their organization from user metadata
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
+        if (!user?.user_metadata?.organization_id) return
 
-        // Get user's profile to get organization_id
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('organization_id')
-          .eq('id', user.id)
-          .single()
-
-        if (!profile?.organization_id) return
+        const organizationId = user.user_metadata.organization_id
 
         // Fetch programs for this organization
         const { data: programsData } = await supabase
           .from('programs')
-          .select(`
-            *,
-            instructor:profiles!programs_instructor_id_fkey(
-              first_name,
-              last_name
-            )
-          `)
-          .eq('organization_id', profile.organization_id)
+          .select('*')
+          .eq('organization_id', organizationId)
           .order('created_at', { ascending: false })
 
-        setPrograms(programsData || [])
+        if (programsData) {
+          // Enhance programs with instructor info from user metadata
+          const programsWithInstructors = await Promise.all(
+            programsData.map(async (program) => {
+              if (program.instructor_id) {
+                // Get instructor info from auth.users via RPC
+                const { data: instructorData } = await supabase
+                  .rpc('get_instructors_for_organization', { org_id: organizationId })
+                
+                const instructor = instructorData?.find((inst: any) => inst.id === program.instructor_id)
+                return {
+                  ...program,
+                  instructor: instructor || null
+                }
+              }
+              return { ...program, instructor: null }
+            })
+          )
+
+          setPrograms(programsWithInstructors)
+        }
       } catch (error) {
         console.error('Error fetching programs:', error)
       } finally {

@@ -35,142 +35,85 @@ export default function SignUpPage() {
         throw new Error('Organization name is required for admin accounts')
       }
 
+      console.log('Starting signup process...', { email, role, firstName, lastName, organizationName })
+
       // Sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
           data: {
             first_name: firstName,
             last_name: lastName,
             role: role,
-          },
-        },
+            organization_name: role === 'admin' ? organizationName : null
+          }
+        }
       })
       
+      console.log('Signup response:', { data, error })
+      
       if (error) {
+        console.error('Signup error:', error)
         if (error.message.includes('already registered')) {
           throw new Error('An account with this email already exists. Please sign in instead.')
         }
-        throw error
+        throw new Error(`Signup failed: ${error.message}`)
       }
 
-      // For development/testing - create profile and organization immediately if email confirmation is disabled
-      if (data.user?.id) {
+      if (!data.user) {
+        throw new Error('User creation failed - no user data returned')
+      }
+
+      // For admin users, create organization and update user metadata with organization_id
+      if (data.user?.id && role === 'admin') {
         try {
-          console.log('Creating organization and profile for user:', data.user.id)
+          console.log('Creating organization for admin user:', data.user.id)
           
-          let organizationId = null
+          const subdomain = organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+          console.log('Generated subdomain:', subdomain)
           
-          // Create organization if user is admin
-          if (role === 'admin') {
-            console.log('Attempting to create organization:', organizationName)
-            const subdomain = organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-            console.log('Generated subdomain:', subdomain)
-            
-            const { data: orgData, error: orgError } = await supabase
-              .from('organizations')
-              .insert({
-                name: organizationName,
-                subdomain: subdomain,
-                admin_id: data.user.id
-              })
-              .select()
-              .single()
-            
-            if (orgError) {
-              console.error('Organization creation error:', orgError)
-              console.error('Error code:', orgError.code)
-              console.error('Error message:', orgError.message)
-              console.error('Error details:', orgError.details)
-              throw new Error(`Failed to create organization: ${orgError.message}`)
-            } else {
-              console.log('Organization created successfully:', orgData)
-              organizationId = orgData.id
-              
-              // Validate organization was created with valid ID
-              if (!organizationId) {
-                throw new Error('Organization creation failed - no ID returned')
-              }
-            }
-          }
-          
-          // Validate admin has organization before creating profile
-          if (role === 'admin' && !organizationId) {
-            throw new Error('Cannot create admin profile - organization creation failed')
-          }
-          
-          // Create profile
-          console.log('Attempting to create profile for user:', data.user.id)
-          
-          // First check if profile already exists
-          const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', data.user.id)
+          const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .insert({
+              name: organizationName,
+              subdomain: subdomain,
+              admin_id: data.user.id
+            })
+            .select()
             .single()
           
-          if (existingProfile) {
-            console.log('Profile already exists, updating instead')
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({
-                email: email,
-                first_name: firstName,
-                last_name: lastName,
-                role: role,
-                organization_id: organizationId
-              })
-              .eq('id', data.user.id)
-            
-            if (updateError) {
-              console.error('Profile update error:', updateError)
-              throw new Error(`Failed to update user profile: ${updateError.message}`)
-            }
-          } else {
-            const { error: profileError } = await supabase.from('profiles').insert({
-              id: data.user.id,
-              email: email,
+          console.log('Organization creation response:', { orgData, orgError })
+          
+          if (orgError) {
+            console.error('Organization creation error:', orgError)
+            throw new Error(`Failed to create organization: ${orgError.message}`)
+          }
+          
+          console.log('Organization created successfully:', orgData)
+          
+          // Update user metadata with organization_id
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: {
               first_name: firstName,
               last_name: lastName,
               role: role,
-              organization_id: organizationId
-            })
-            
-            if (profileError) {
-              console.error('Profile creation error:', profileError)
-              console.error('Profile error code:', profileError.code)
-              console.error('Profile error message:', profileError.message)
-              console.error('Profile error details:', profileError.details)
-              
-              if (profileError.code === '23505') { // Duplicate key error
-                throw new Error('An account with this information already exists. Please try signing in instead.')
-              }
-              
-              throw new Error(`Failed to create user profile: ${profileError.message}`)
-            } else {
-              console.log('Profile created successfully')
+              organization_id: orgData.id,
+              organization_name: organizationName
             }
+          })
+          
+          console.log('User metadata update response:', { updateError })
+          
+          if (updateError) {
+            console.error('Failed to update user metadata:', updateError)
+            throw new Error(`Failed to link user to organization: ${updateError.message}`)
           }
           
-          // Final verification for admin accounts
-          if (role === 'admin') {
-            const { data: finalProfile, error: verifyError } = await supabase
-              .from('profiles')
-              .select('organization_id')
-              .eq('id', data.user.id)
-              .single()
-            
-            if (verifyError || !finalProfile?.organization_id) {
-              throw new Error('Account created but organization link failed. Please contact support.')
-            }
-            
-            console.log('✅ Admin account setup completed with organization link verified')
-          }
-        } catch (profileError) {
-          console.log('Profile/Organization creation failed:', profileError)
-          throw profileError
+          console.log('✅ Admin account setup completed with organization link')
+        } catch (organizationError) {
+          console.log('Organization setup failed:', organizationError)
+          throw organizationError
         }
       }
 

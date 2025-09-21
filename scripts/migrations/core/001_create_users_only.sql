@@ -1,14 +1,53 @@
--- Create user profiles table with role-based access
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text not null,
-  first_name text,
-  last_name text,
-  role text not null check (role in ('admin', 'instructor', 'student')) default 'student',
-  phone text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
+-- Basic setup for user authentication
+-- This script sets up the foundation for the user metadata-based architecture
+
+-- Note: We no longer use a profiles table. All user information is stored in auth.users.raw_user_meta_data
+-- This provides better performance and simpler architecture for multi-tenant applications
+
+-- Enable necessary extensions
+create extension if not exists "uuid-ossp";
+
+-- Grant necessary permissions for auth schema access
+grant usage on schema auth to anon, authenticated;
+
+-- Grant access to auth.users for our RPC functions
+grant select on auth.users to authenticated;
+
+-- Create helper function for updating timestamps
+create or replace function public.handle_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = timezone('utc'::text, now());
+  return new;
+end;
+$$;
+
+-- Create a view for user information (optional, for easier queries)
+create or replace view public.user_profiles as
+select 
+  id,
+  email,
+  raw_user_meta_data ->> 'first_name' as first_name,
+  raw_user_meta_data ->> 'last_name' as last_name,
+  raw_user_meta_data ->> 'role' as role,
+  (raw_user_meta_data ->> 'organization_id')::uuid as organization_id,
+  created_at,
+  last_sign_in_at
+from auth.users
+where deleted_at is null;
+
+-- Grant access to the view
+grant select on public.user_profiles to authenticated;
+
+-- Note: User metadata structure should be:
+-- {
+--   "first_name": "John",
+--   "last_name": "Doe", 
+--   "role": "admin|instructor|student",
+--   "organization_id": "uuid-string"
+-- }
 
 -- Enable RLS
 alter table public.profiles enable row level security;

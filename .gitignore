@@ -32,3 +32,22 @@ test-*.js
 create-*.js
 simple-test.js
 comprehensive-check.js
+
+# Archive and temporary directories
+/archive/
+/scripts/temp/
+/scripts/analysis/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+temp/
