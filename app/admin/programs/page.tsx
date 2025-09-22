@@ -22,10 +22,12 @@ export default function AdminProgramsPage() {
         const supabase = createClient()
         
         // Get current user and their organization from user metadata
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user?.user_metadata?.organization_id) return
+  const { data: { user } } = await supabase.auth.getUser()
+  console.log('JWT organization_id:', user?.user_metadata?.organization_id)
+  console.log('JWT role:', user?.user_metadata?.role)
+  if (!user?.user_metadata?.organization_id) return
 
-        const organizationId = user.user_metadata.organization_id
+  const organizationId = user.user_metadata.organization_id
 
         // Fetch programs for this organization
         const { data: programsData } = await supabase
