@@ -52,7 +52,7 @@ export interface OrganizationInvite {
 // Database table interfaces - Updated to match schema with organization support
 export interface Program {
   id: string
-  title: string
+  name: string
   description: string
   instructor_id: string
   organization_id: string
@@ -80,7 +80,7 @@ export interface ProgramParticipant {
 
 export interface Announcement {
   id: string
-  title: string
+  name: string
   content: string
   author_id: string
   organization_id: string
