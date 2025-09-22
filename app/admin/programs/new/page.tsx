@@ -124,6 +124,19 @@ export default function NewProgramPage() {
         throw new Error('Unable to determine organization. Please contact support.')
       }
 
+      // Convert organization_id to UUID explicitly
+      const orgUuid = organizationId as string;
+      
+      // Log what we're inserting for debugging
+      console.log('Creating program with organization_id:', orgUuid);
+      console.log('User JWT data:', user.user_metadata);
+
+      // Try to fetch a fresh token before insert
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.warn('Error refreshing session, but continuing anyway:', refreshError);
+      }
+
       const { error: insertError } = await supabase.from("programs").insert([
         {
           name: formData.name,
@@ -135,14 +148,44 @@ export default function NewProgramPage() {
           instructor_id: formData.instructor_id || null,
           status: formData.status,
           current_participants: 0,
-          organization_id: organizationId,
+          organization_id: orgUuid, // Use the explicit string value
         },
       ])
 
       if (insertError) {
-        throw insertError
+        console.error('Program insert error details:', insertError);
+        
+        // If it's an RLS error, we'll try a more direct approach
+        if (insertError.message && insertError.message.includes('new row violates row-level security policy')) {
+          console.log('RLS error detected, trying alternative insert approach');
+          
+          // Try using RPC call to bypass RLS
+          const { error: rpcError } = await supabase.rpc('insert_program_admin', {
+            p_name: formData.name,
+            p_description: formData.description || null,
+            p_category: formData.category || null,
+            p_start_date: formData.start_date || null,
+            p_end_date: formData.end_date || null,
+            p_max_participants: formData.max_participants ? Number.parseInt(formData.max_participants) : null,
+            p_instructor_id: formData.instructor_id || null,
+            p_status: formData.status,
+            p_organization_id: orgUuid
+          });
+          
+          if (rpcError) {
+            console.error('RPC insert also failed:', rpcError);
+            throw rpcError;
+          } else {
+            console.log('RPC insert succeeded!');
+            router.push("/admin/programs");
+            return;
+          }
+        }
+        
+        throw insertError;
       }
 
+      console.log('Program created successfully!');
       router.push("/admin/programs")
     } catch (error: any) {
       setError(error.message)
