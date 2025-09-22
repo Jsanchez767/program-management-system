@@ -13,7 +13,7 @@ import { useEffect, useState } from "react"
 export const dynamic = 'force-dynamic'
 
 export default function AdminProgramsPage() {
-  const [programs, setPrograms] = useState<Program[]>([])
+  const [programs, setPrograms] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
