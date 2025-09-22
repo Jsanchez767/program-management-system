@@ -5,9 +5,8 @@ import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useRealtimePrograms } from "@/lib/realtime-hooks"
 
-export default function ProgramModal({ programId, open, onOpenChange, onEdit }: { programId: string, open: boolean, onOpenChange: (open: boolean) => void, onEdit: () => void }) {
+export default function ProgramModal({ programId, open, onOpenChange, onEdit, organizationId }: { programId: string, open: boolean, onOpenChange: (open: boolean) => void, onEdit: () => void, organizationId: string }) {
   const [program, setProgram] = useState<any>(null)
-  const organizationId = typeof window !== "undefined" ? window.localStorage.getItem("organizationId") || "" : ""
   const programs = useRealtimePrograms(organizationId)
 
   useEffect(() => {

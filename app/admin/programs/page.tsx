@@ -157,6 +157,7 @@ export default function AdminProgramsPage() {
                 setEditProgramId(selectedProgramId)
                 setEditModalOpen(true)
               }}
+              organizationId={organizationId || ""}
             />
           )}
           {/* Edit Program Modal */}
