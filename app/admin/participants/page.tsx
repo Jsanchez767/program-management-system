@@ -6,30 +6,27 @@ import { createClient } from "@/lib/supabase/server"
 
 async function getParticipants() {
   const supabase = await createClient()
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return []
 
-  // Try to get organization_id from user metadata
-  let organizationId = user.user_metadata?.organization_id
-
-  // Fallback: fetch organization_id from organizations table using user id
-  if (!organizationId) {
-    const { data: org } = await supabase
-      .from('organizations')
-      .select('id')
-      .eq('owner_id', user.id)
-      .single()
-    organizationId = org?.id
-  }
-  if (!organizationId) return []
-
-  // Fetch participants for this organization
   const { data: participants } = await supabase
-    .from('program_participants')
-    .select('id, enrollment_date, status, student_id, program_id, programs(id, name), student_email, student_first_name, student_last_name')
-    .eq('organization_id', organizationId)
-    .order('enrollment_date', { ascending: false })
+    .from("program_participants")
+    .select(`
+      id,
+      enrollment_date,
+      status,
+      student_id,
+      program_id,
+      profiles!program_participants_student_id_fkey(
+        id,
+        first_name,
+        last_name,
+        email
+      ),
+      programs(
+        id,
+        name
+      )
+    `)
+    .order("enrollment_date", { ascending: false })
 
   return participants || []
 }
@@ -74,7 +71,7 @@ export default async function AdminParticipantsPage() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">
-                        {participant.student_first_name} {participant.student_last_name}
+                        {participant.profiles?.[0]?.first_name} {participant.profiles?.[0]?.last_name}
                       </CardTitle>
                       <Badge className={getStatusColor(participant.status)}>
                         {participant.status}
@@ -90,7 +87,7 @@ export default async function AdminParticipantsPage() {
 
                       <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-2">📧</span>
-                        {participant.student_email}
+                        {participant.profiles?.[0]?.email}
                       </div>
 
                       <div className="flex items-center text-sm text-muted-foreground">

@@ -20,19 +20,13 @@ export default function AdminProgramsPage() {
     async function fetchPrograms() {
       try {
         const supabase = createClient()
-        // Get current user
+        
+        // Get current user and their organization from user metadata
         const { data: { user } } = await supabase.auth.getUser()
-        let organizationId = user?.user_metadata?.organization_id
-        // Fallback: fetch organization_id from organizations table using user id
-        if (!organizationId && user?.id) {
-          const { data: org } = await supabase
-            .from('organizations')
-            .select('id')
-            .eq('admin_id', user.id)
-            .single()
-          organizationId = org?.id
-        }
-        if (!organizationId) return
+        if (!user?.user_metadata?.organization_id) return
+
+        const organizationId = user.user_metadata.organization_id
+
         // Fetch programs for this organization
         const { data: programsData } = await supabase
           .from('programs')
@@ -40,36 +34,34 @@ export default function AdminProgramsPage() {
           .eq('organization_id', organizationId)
           .order('created_at', { ascending: false })
 
-        // Fetch all instructors for this organization from Supabase Auth
-        const { data: instructorsData } = await supabase
-          .from('users')
-          .select('id, email, raw_user_meta_data')
-          .neq('raw_user_meta_data->>role', null)
-          .eq('raw_user_meta_data->>role', 'instructor')
-          .eq('raw_user_meta_data->>organization_id', organizationId)
+        if (programsData) {
+          // Enhance programs with instructor info from user metadata
+          const programsWithInstructors = await Promise.all(
+            programsData.map(async (program) => {
+              if (program.instructor_id) {
+                // Get instructor info from auth.users via RPC
+                const { data: instructorData } = await supabase
+                  .rpc('get_instructors_for_organization', { org_id: organizationId })
+                
+                const instructor = instructorData?.find((inst: any) => inst.id === program.instructor_id)
+                return {
+                  ...program,
+                  instructor: instructor || null
+                }
+              }
+              return { ...program, instructor: null }
+            })
+          )
 
-        // Map instructor_id to instructor metadata
-        const programsWithInstructors = (programsData || []).map((program: any) => {
-          let instructor = null
-          if (program.instructor_id && instructorsData) {
-            instructor = instructorsData.find((inst: any) => inst.id === program.instructor_id)
-          }
-          return {
-            ...program,
-            instructor: instructor ? {
-              first_name: instructor.raw_user_meta_data?.first_name,
-              last_name: instructor.raw_user_meta_data?.last_name,
-              email: instructor.email
-            } : null
-          }
-        })
-        setPrograms(programsWithInstructors)
+          setPrograms(programsWithInstructors)
+        }
       } catch (error) {
         console.error('Error fetching programs:', error)
       } finally {
         setIsLoading(false)
       }
     }
+
     fetchPrograms()
   }, [])
 
@@ -129,22 +121,20 @@ export default function AdminProgramsPage() {
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {program.description || "No description provided"}
                     </p>
+
                     <div className="space-y-2">
-                      {program.instructor ? (
+                      {program.instructor && (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <span className="mr-2">👤</span>
-                          {program.instructor.first_name} {program.instructor.last_name} ({program.instructor.email})
+                          {program.instructor.first_name} {program.instructor.last_name}
                         </div>
-                      ) : program.instructor_id ? (
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <span className="mr-2">👤</span>
-                          Instructor ID: {program.instructor_id}
-                        </div>
-                      ) : null}
+                      )}
+
                       <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-2">👥</span>
                         {program.current_participants || 0} / {program.max_participants || "Unlimited"} participants
                       </div>
+
                       {program.start_date && (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <span className="mr-2">📅</span>
@@ -153,6 +143,7 @@ export default function AdminProgramsPage() {
                         </div>
                       )}
                     </div>
+
                     <div className="flex gap-2 pt-4">
                       <Button variant="outline" size="sm" asChild className="flex-1 bg-transparent">
                         <Link href={`/admin/programs/${program.id}`}>View Details</Link>

@@ -2,8 +2,6 @@
 
 A comprehensive multi-tenant program management system built with Next.js, Supabase, and TypeScript. Designed for educational institutions to manage programs, students, instructors, and administrative tasks with complete data isolation between organizations.
 
-**Now using user metadata only (no profiles table). All user information is stored in Supabase Auth user metadata for maximum performance and simplicity.**
-
 ## 🏗️ Architecture
 
 - **Frontend**: Next.js 14 with TypeScript
@@ -44,6 +42,7 @@ A comprehensive multi-tenant program management system built with Next.js, Supab
 
 The application uses a comprehensive database schema with the following main tables:
 
+- `profiles` - User profiles with role-based access (admin, instructor, student)
 - `programs` - Educational program information
 - `program_participants` - Student enrollment and participation tracking
 - `announcements` - System-wide and program-specific announcements
@@ -51,7 +50,6 @@ The application uses a comprehensive database schema with the following main tab
 - `lesson_plans` - Instructor lesson planning and management
 - `purchase_orders` - Material and supply request management
 - `field_trips` - Field trip planning and coordination
-*User roles and organization_id are now stored in Supabase Auth user metadata (raw_user_meta_data), not in a separate profiles table.*
 
 ## Getting Started
 
@@ -71,11 +69,11 @@ The application uses a comprehensive database schema with the following main tab
 
 2. **Install dependencies**
    ```bash
-   pnpm install
-   # or
    npm install
    # or
    yarn install
+   # or
+   pnpm install
    ```
 
 3. **Set up environment variables**
@@ -88,30 +86,29 @@ The application uses a comprehensive database schema with the following main tab
 
 4. **Set up the database**
    
-   Run the SQL scripts in the `scripts/migrations/core/` directory in order:
+   Run the SQL scripts in the `scripts/` directory in order:
    ```bash
    # Execute these in your Supabase SQL editor
-   scripts/migrations/core/001_create_users_only.sql
-   scripts/migrations/core/002_create_programs.sql
-   scripts/migrations/core/003_create_participants.sql
-   scripts/migrations/core/004_create_announcements.sql
-   scripts/migrations/core/005_create_documents.sql
-   scripts/migrations/core/006_create_lesson_plans.sql
-   scripts/migrations/core/007_create_purchase_orders.sql
-   scripts/migrations/core/008_create_field_trips.sql
-   scripts/migrations/core/009_create_organizations.sql
-   scripts/migrations/core/010_multi_tenant_policies.sql
-   scripts/migrations/core/011_fix_rls_signup.sql
-   # ...and any additional migration scripts as needed
+   scripts/001_create_users_and_profiles.sql
+   scripts/002_create_programs.sql
+   scripts/003_create_participants.sql
+   scripts/004_create_announcements.sql
+   scripts/005_create_documents.sql
+   scripts/006_create_lesson_plans.sql
+   scripts/007_create_purchase_orders.sql
+   scripts/008_create_field_trips.sql
+   # Multi-tenant RLS policies (required for production)
+   scripts/010_multi_tenant_policies.sql
+   scripts/011_fix_rls_signup.sql
    ```
 
 5. **Run the development server**
    ```bash
-   pnpm dev
-   # or
    npm run dev
    # or
    yarn dev
+   # or
+   pnpm dev
    ```
 
 6. **Open the application**
@@ -121,7 +118,7 @@ The application uses a comprehensive database schema with the following main tab
 ### First-time Setup
 
 1. **Create an admin account**: Go to `/auth/signup` and create an account
-2. **Set admin role and organization_id in Supabase Auth user metadata**: This is now handled automatically by the application logic. No manual profile creation needed.
+2. **Set admin role**: The first user with email matching the configured admin email will automatically get admin privileges
 3. **Configure programs**: Use the admin dashboard to set up your educational programs
 
 ## Authentication & Authorization
@@ -132,7 +129,6 @@ The application uses Supabase Auth with role-based access control:
 - **Protected routes**: All dashboard areas require authentication
 - **Role-based access**: Different interfaces for admin, instructor, and student roles
 - **Row Level Security**: Database-level security ensures users only access authorized data
-- **User metadata only**: All roles and organization_id are stored in Supabase Auth user metadata (raw_user_meta_data)
 
 ## Development
 
