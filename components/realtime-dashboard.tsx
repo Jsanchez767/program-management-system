@@ -23,9 +23,18 @@ export function RealtimeDashboard() {
 
 function DashboardContent({ organizationId }: { organizationId: string }) {
   // Use our realtime hooks
-  const stats = useRealtimeDashboard(organizationId)
   const programs = useRealtimePrograms(organizationId)
   const { enrollments, newEnrollmentNotification } = useRealtimeEnrollments(organizationId)
+
+  // Calculate live stats from programs and enrollments
+  const today = new Date().toISOString().slice(0, 10)
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  const todayEnrollments = enrollments.filter(e => e.created_at?.slice(0, 10) === today).length
+  const weekEnrollments = enrollments.filter(e => new Date(e.created_at) >= weekAgo).length
+  const monthEnrollments = enrollments.filter(e => new Date(e.created_at) >= monthAgo).length
+  const activePrograms = programs.filter(p => p.status === 'active').length
 
   // Test function to create a new program (for demonstration)
   const createTestProgram = async () => {
@@ -68,7 +77,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
             <Badge variant="outline" className="text-xs">Live</Badge>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.todayEnrollments}</div>
+            <div className="text-2xl font-bold">{todayEnrollments}</div>
           </CardContent>
         </Card>
 
@@ -80,7 +89,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
             <Badge variant="outline" className="text-xs">Live</Badge>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.weekEnrollments}</div>
+            <div className="text-2xl font-bold">{weekEnrollments}</div>
           </CardContent>
         </Card>
 
@@ -92,7 +101,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
             <Badge variant="outline" className="text-xs">Live</Badge>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.monthEnrollments}</div>
+            <div className="text-2xl font-bold">{monthEnrollments}</div>
           </CardContent>
         </Card>
 
@@ -104,7 +113,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
             <Badge variant="outline" className="text-xs">Live</Badge>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activePrograms}</div>
+            <div className="text-2xl font-bold">{activePrograms}</div>
           </CardContent>
         </Card>
       </div>
