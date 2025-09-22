@@ -116,17 +116,6 @@ export default function AdminProgramsPage() {
                       >
                         View Details
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 bg-transparent"
-                        onClick={() => {
-                          setEditProgramId(program.id)
-                          setEditModalOpen(true)
-                        }}
-                      >
-                        Edit
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -163,6 +152,10 @@ export default function AdminProgramsPage() {
               onOpenChange={(open) => {
                 setModalOpen(open)
                 if (!open) setSelectedProgramId(null)
+              }}
+              onEdit={() => {
+                setEditProgramId(selectedProgramId)
+                setEditModalOpen(true)
               }}
             />
           )}

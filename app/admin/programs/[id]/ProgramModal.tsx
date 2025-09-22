@@ -1,12 +1,14 @@
+import { Button } from "@/components/ui/button"
 "use client"
 
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useRealtimePrograms } from "@/lib/realtime-hooks"
 
-export default function ProgramModal({ programId, open, onOpenChange }: { programId: string, open: boolean, onOpenChange: (open: boolean) => void }) {
+export default function ProgramModal({ programId, open, onOpenChange, onEdit }: { programId: string, open: boolean, onOpenChange: (open: boolean) => void, onEdit: () => void }) {
   const [program, setProgram] = useState<any>(null)
-  const programs = useRealtimePrograms("") // You may want to pass organizationId here
+  const organizationId = typeof window !== "undefined" ? window.localStorage.getItem("organizationId") || "" : ""
+  const programs = useRealtimePrograms(organizationId)
 
   useEffect(() => {
     if (programs && programId) {
@@ -20,9 +22,14 @@ export default function ProgramModal({ programId, open, onOpenChange }: { progra
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{program.name}</DialogTitle>
-          <DialogDescription>{program.description}</DialogDescription>
+        <DialogHeader className="flex items-center justify-between">
+          <div>
+            <DialogTitle>{program.name}</DialogTitle>
+            <DialogDescription>{program.description}</DialogDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={onEdit}>
+            Edit
+          </Button>
         </DialogHeader>
         <div className="mt-4">
           <div><strong>Status:</strong> {program.status}</div>
