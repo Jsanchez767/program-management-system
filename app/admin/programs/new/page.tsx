@@ -148,7 +148,7 @@ export default function NewProgramPage() {
           instructor_id: formData.instructor_id || null,
           status: formData.status,
           current_participants: 0,
-          organization_id: orgUuid, // Use the explicit string value
+          // organization_id is now set by the DB trigger
         },
       ])
 
@@ -160,17 +160,17 @@ export default function NewProgramPage() {
           console.log('RLS error detected, trying alternative insert approach');
           
           // Try using RPC call to bypass RLS
-          const { error: rpcError } = await supabase.rpc('insert_program_admin', {
-            p_name: formData.name,
-            p_description: formData.description || null,
-            p_category: formData.category || null,
-            p_start_date: formData.start_date || null,
-            p_end_date: formData.end_date || null,
-            p_max_participants: formData.max_participants ? Number.parseInt(formData.max_participants) : null,
-            p_instructor_id: formData.instructor_id || null,
-            p_status: formData.status,
-            p_organization_id: orgUuid
-          });
+           const { error: rpcError } = await supabase.rpc('insert_program_admin', {
+             p_name: formData.name,
+             p_description: formData.description || null,
+             p_category: formData.category || null,
+             p_start_date: formData.start_date || null,
+             p_end_date: formData.end_date || null,
+             p_max_participants: formData.max_participants ? Number.parseInt(formData.max_participants) : null,
+             p_instructor_id: formData.instructor_id || null,
+             p_status: formData.status,
+             // p_organization_id is now set by the DB trigger
+           });
           
           if (rpcError) {
             console.error('RPC insert also failed:', rpcError);
