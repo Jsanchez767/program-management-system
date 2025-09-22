@@ -1,5 +1,5 @@
-import EditProgramModal from "./[id]/EditProgramModal"
 "use client"
+import EditProgramModal from "./[id]/EditProgramModal"
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
