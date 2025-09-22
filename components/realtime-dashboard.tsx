@@ -34,7 +34,9 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
   const todayEnrollments = enrollments.filter(e => e.created_at?.slice(0, 10) === today).length
   const weekEnrollments = enrollments.filter(e => new Date(e.created_at) >= weekAgo).length
   const monthEnrollments = enrollments.filter(e => new Date(e.created_at) >= monthAgo).length
-  const activePrograms = programs.filter(p => p.status === 'active').length
+  const activePrograms = programs.filter(
+    p => (p.status ?? 'active').toLowerCase() === 'active'
+  ).length
 
   // Test function to create a new program (for demonstration)
   const createTestProgram = async () => {

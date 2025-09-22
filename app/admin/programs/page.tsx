@@ -1,3 +1,4 @@
+import EditProgramModal from "./[id]/EditProgramModal"
 "use client"
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
@@ -8,6 +9,7 @@ import Link from "next/link"
 import { useRealtimePrograms } from "@/lib/realtime-hooks"
 import { useUser } from "@/hooks/use-user"
 import { useEffect, useState } from "react"
+import ProgramModal from "./[id]/ProgramModal"
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -30,6 +32,11 @@ export default function AdminProgramsPage() {
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
     }
   }
+
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editProgramId, setEditProgramId] = useState<string | null>(null)
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,11 +105,27 @@ export default function AdminProgramsPage() {
                     </div>
 
                     <div className="flex gap-2 pt-4">
-                      <Button variant="outline" size="sm" asChild className="flex-1 bg-transparent">
-                        <Link href={`/admin/programs/${program.id}`}>View Details</Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 bg-transparent"
+                        onClick={() => {
+                          setSelectedProgramId(program.id)
+                          setModalOpen(true)
+                        }}
+                      >
+                        View Details
                       </Button>
-                      <Button variant="outline" size="sm" asChild className="flex-1 bg-transparent">
-                        <Link href={`/admin/programs/${program.id}/edit`}>Edit</Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 bg-transparent"
+                        onClick={() => {
+                          setEditProgramId(program.id)
+                          setEditModalOpen(true)
+                        }}
+                      >
+                        Edit
                       </Button>
                     </div>
                   </CardContent>
@@ -132,6 +155,28 @@ export default function AdminProgramsPage() {
               </div>
             )}
           </div>
+          {/* Program Details Modal */}
+          {selectedProgramId && (
+            <ProgramModal
+              programId={selectedProgramId}
+              open={modalOpen}
+              onOpenChange={(open) => {
+                setModalOpen(open)
+                if (!open) setSelectedProgramId(null)
+              }}
+            />
+          )}
+          {/* Edit Program Modal */}
+          {editProgramId && (
+            <EditProgramModal
+              programId={editProgramId}
+              open={editModalOpen}
+              onOpenChange={(open) => {
+                setEditModalOpen(open)
+                if (!open) setEditProgramId(null)
+              }}
+            />
+          )}
         </main>
       </div>
     </div>
