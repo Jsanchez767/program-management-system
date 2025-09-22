@@ -5,67 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
-import type { Program } from "@/lib/types/database"
+import { useRealtimePrograms } from "@/lib/realtime-hooks"
+import { useUser } from "@/hooks/use-user"
 import { useEffect, useState } from "react"
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export default function AdminProgramsPage() {
-  const [programs, setPrograms] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    async function fetchPrograms() {
-      try {
-        const supabase = createClient()
-        
-        // Get current user and their organization from user metadata
-  const { data: { user } } = await supabase.auth.getUser()
-  console.log('JWT organization_id:', user?.user_metadata?.organization_id)
-  console.log('JWT role:', user?.user_metadata?.role)
-  if (!user?.user_metadata?.organization_id) return
-
-  const organizationId = user.user_metadata.organization_id
-
-        // Fetch programs for this organization
-        const { data: programsData } = await supabase
-          .from('programs')
-          .select('*')
-          .eq('organization_id', organizationId)
-          .order('created_at', { ascending: false })
-
-        if (programsData) {
-          // Enhance programs with instructor info from user metadata
-          const programsWithInstructors = await Promise.all(
-            programsData.map(async (program) => {
-              if (program.instructor_id) {
-                // Get instructor info from auth.users via RPC
-                const { data: instructorData } = await supabase
-                  .rpc('get_instructors_for_organization', { org_id: organizationId })
-                
-                const instructor = instructorData?.find((inst: any) => inst.id === program.instructor_id)
-                return {
-                  ...program,
-                  instructor: instructor || null
-                }
-              }
-              return { ...program, instructor: null }
-            })
-          )
-
-          setPrograms(programsWithInstructors)
-        }
-      } catch (error) {
-        console.error('Error fetching programs:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchPrograms()
-  }, [])
+  const { user } = useUser()
+  const organizationId = user?.user_metadata?.organization_id
+  const programs = useRealtimePrograms(organizationId || "")
+  const isLoading = !organizationId
 
   const getStatusColor = (status: string) => {
     switch (status) {
