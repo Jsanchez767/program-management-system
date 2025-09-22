@@ -19,13 +19,22 @@ export default function AdminFieldTripsPage() {
     async function fetchFieldTrips() {
       try {
         const supabase = createClient()
-        
-        // Get current user and their organization from metadata
+        // Get current user
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        // Get organization_id from user metadata
-        const organizationId = user.user_metadata?.organization_id
+        // Try to get organization_id from user metadata
+        let organizationId = user.user_metadata?.organization_id
+
+        // Fallback: fetch organization_id from organizations table using user id
+        if (!organizationId) {
+          const { data: org } = await supabase
+            .from('organizations')
+            .select('id')
+            .eq('owner_id', user.id)
+            .single()
+          organizationId = org?.id
+        }
         if (!organizationId) return
 
         // Fetch field trips for this organization
@@ -42,7 +51,6 @@ export default function AdminFieldTripsPage() {
         setIsLoading(false)
       }
     }
-
     fetchFieldTrips()
   }, [])
 

@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 const mockDocuments = [
   {
@@ -39,7 +41,46 @@ const mockDocuments = [
 ]
 
 export default function AdminDocumentsPage() {
-  const documents = mockDocuments
+  const [documents, setDocuments] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  useEffect(() => {
+    async function fetchDocuments() {
+      setIsLoading(true)
+      const supabase = createClient()
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setDocuments([])
+        setIsLoading(false)
+        return
+      }
+      // Try to get organization_id from user metadata
+      let organizationId = user.user_metadata?.organization_id
+      // Fallback: fetch organization_id from organizations table using user id
+      if (!organizationId) {
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('id')
+          .eq('owner_id', user.id)
+          .single()
+        organizationId = org?.id
+      }
+      if (!organizationId) {
+        setDocuments([])
+        setIsLoading(false)
+        return
+      }
+      // Fetch documents for this organization
+      const { data: docs } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false })
+      setDocuments(docs || [])
+      setIsLoading(false)
+    }
+    fetchDocuments()
+  }, [])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -57,10 +98,10 @@ export default function AdminDocumentsPage() {
   }
 
   // Group documents by status for better organization
-  const pendingDocs = documents?.filter((doc) => doc.status === "pending") || []
-  const approvedDocs = documents?.filter((doc) => doc.status === "approved") || []
-  const rejectedDocs = documents?.filter((doc) => doc.status === "rejected") || []
-  const missingDocs = documents?.filter((doc) => doc.status === "missing") || []
+  const pendingDocs = documents?.filter((doc: any) => doc.status === "pending") || []
+  const approvedDocs = documents?.filter((doc: any) => doc.status === "approved") || []
+  const rejectedDocs = documents?.filter((doc: any) => doc.status === "rejected") || []
+  const missingDocs = documents?.filter((doc: any) => doc.status === "missing") || []
 
   return (
     <div className="min-h-screen bg-background">
