@@ -142,18 +142,12 @@ export default function SignUpPage() {
         try {
           console.log('Creating organization for admin user:', data.user.id)
           
-          const subdomain = organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-          console.log('Generated subdomain:', subdomain)
-          
+          // Use the secure database function to create organization
           const { data: orgData, error: orgError } = await supabase
-            .from('organizations')
-            .insert({
-              name: organizationName,
-              subdomain: subdomain,
-              admin_id: data.user.id
+            .rpc('create_organization_for_signup', {
+              org_name: finalOrganizationName,
+              admin_user_id: data.user.id
             })
-            .select()
-            .single()
           
           console.log('Organization creation response:', { orgData, orgError })
           
@@ -162,16 +156,21 @@ export default function SignUpPage() {
             throw new Error(`Failed to create organization: ${orgError.message}`)
           }
           
-          console.log('Organization created successfully:', orgData)
+          if (!orgData || orgData.length === 0) {
+            throw new Error('Organization creation failed - no data returned')
+          }
+          
+          const organizationId = orgData[0].organization_id
+          console.log('Organization created successfully with ID:', organizationId)
           
           // Update user metadata with organization_id
           const { error: updateError } = await supabase.auth.updateUser({
             data: {
-              first_name: firstName,
-              last_name: lastName,
-              role: role,
-              organization_id: orgData.id,
-              organization_name: organizationName
+              first_name: finalFirstName,
+              last_name: finalLastName,
+              role: finalRole,
+              organization_id: organizationId,
+              organization_name: finalOrganizationName
             }
           })
           

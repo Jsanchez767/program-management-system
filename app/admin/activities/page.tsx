@@ -18,68 +18,60 @@ import { useRealtimeActivities } from "@/lib/realtime-hooks"
 import { useUser } from "@/shared/hooks/use-user"
 import { useEffect, useState, useMemo } from "react"
 import ActivityModal from "./[id]/ActivityModal"
+import { createClient } from '@/lib/supabase/client'
 
 // Force dynamic rendering
 
-export default function AdminActivitiesPage() {
-  const { user } = useUser()
-  const organizationId = user?.user_metadata?.organization_id
-  const realtimeActivities = useRealtimeActivities(organizationId || "")
-  const [activities, setActivities] = useState<any[]>([])
-  const [hasDataLoaded, setHasDataLoaded] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
-  const [showPlaceholder, setShowPlaceholder] = useState(false)
-  const isLoading = !organizationId || !hasDataLoaded || !isMounted
-
-  // Modal and view state
-  const [modalOpen, setModalOpen] = useState(false)
-  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editActivityId, setEditActivityId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+export default function ActivitiesPage() {
+  const { user, loading } = useUser()
+  const [organizationId, setOrganizationId] = useState<string | null>(null)
+  const activities = useRealtimeActivities(organizationId || '')
+  const supabase = createClient()
   
-  // Advanced table state
+  // Filter and search states
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
+
+  // Sorting states
   const [sortColumn, setSortColumn] = useState<string>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  // Column visibility states
   const [visibleColumns, setVisibleColumns] = useState({
     name: true,
     description: true,
+    category: true,
     staff: true,
     participants: true,
     dates: true,
     status: true,
-    category: true,
     actions: true
   })
 
-  // Ensure we're client-side before showing any content
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  // Inline editing states
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editingCell, setEditingCell] = useState<{activityId: string, field: string} | null>(null)
+  const [editValue, setEditValue] = useState('')
 
-  // Delayed placeholder - only show after 3 seconds if no programs and data has loaded
-  useEffect(() => {
-    if (hasDataLoaded && isMounted && activities.length === 0) {
-      const timer = setTimeout(() => {
-        setShowPlaceholder(true)
-      }, 3000) // 3 second delay
+  // Modal states
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editActivityId, setEditActivityId] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
 
-      return () => clearTimeout(timer)
-    } else {
-      setShowPlaceholder(false)
+  // Get organization ID from user metadata
+  useEffect(() => {
+    const getOrganizationId = async () => {
+      if (user?.user_metadata?.organization_id) {
+        setOrganizationId(user.user_metadata.organization_id)
+      }
     }
-  }, [hasDataLoaded, isMounted, activities.length])
-
-  // Sync local activities state with realtime updates
-  useEffect(() => {
-    if (organizationId && realtimeActivities !== undefined) {
-      setActivities(realtimeActivities || [])
-      setHasDataLoaded(true)
+    if (user) {
+      getOrganizationId()
     }
-  }, [realtimeActivities, organizationId])
+  }, [user])
 
   // Filter and sort activities
   const filteredAndSortedActivities = useMemo(() => {
@@ -156,6 +148,48 @@ export default function AdminActivitiesPage() {
       ...prev,
       [column]: !prev[column]
     }))
+  }
+
+  const handleCellClick = (activityId: string, field: string, currentValue: string) => {
+    if (isEditMode) {
+      setEditingCell({ activityId, field })
+      setEditValue(currentValue || '')
+    }
+  }
+
+  const handleCellSave = async () => {
+    if (!editingCell) return
+    
+    try {
+      // Update the activity in Supabase
+      const { error } = await supabase
+        .from('activities')
+        .update({ [editingCell.field]: editValue })
+        .eq('id', editingCell.activityId)
+      
+      if (error) {
+        console.error('Error updating activity:', error)
+        return
+      }
+      
+      setEditingCell(null)
+      setEditValue('')
+    } catch (error) {
+      console.error('Error updating activity:', error)
+    }
+  }
+
+  const handleCellCancel = () => {
+    setEditingCell(null)
+    setEditValue('')
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleCellSave()
+    } else if (e.key === 'Escape') {
+      handleCellCancel()
+    }
   }
 
   const getStatusColor = (status: string) => {
@@ -259,29 +293,42 @@ export default function AdminActivitiesPage() {
                   </Select>
                 </div>
 
-                {/* Column Visibility */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Columns
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {Object.entries(visibleColumns).map(([column, isVisible]) => (
-                      <DropdownMenuCheckboxItem
-                        key={column}
-                        checked={isVisible}
-                        onCheckedChange={() => toggleColumnVisibility(column as keyof typeof visibleColumns)}
-                        className="capitalize"
-                      >
-                        {column === 'actions' ? 'Actions' : column}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* Edit Data and Column Visibility Controls */}
+                <div className="flex items-center gap-2">
+                  {/* Edit Data Toggle */}
+                  <Button
+                    variant={isEditMode ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsEditMode(!isEditMode)}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    {isEditMode ? 'Exit Edit' : 'Edit Data'}
+                  </Button>
+
+                  {/* Column Visibility */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Eye className="mr-2 h-4 w-4" />
+                        Columns
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {Object.entries(visibleColumns).map(([column, isVisible]) => (
+                        <DropdownMenuCheckboxItem
+                          key={column}
+                          checked={isVisible}
+                          onCheckedChange={() => toggleColumnVisibility(column as keyof typeof visibleColumns)}
+                          className="capitalize"
+                        >
+                          {column === 'actions' ? 'Actions' : column}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             )}
           </div>
@@ -290,7 +337,7 @@ export default function AdminActivitiesPage() {
           {viewMode === 'grid' ? (
             /* Grid View */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {isLoading ? (
+              {loading ? (
                 [...Array(6)].map((_, i) => (
                   <Card key={i} className="animate-pulse">
                     <CardContent className="p-6">
@@ -346,7 +393,7 @@ export default function AdminActivitiesPage() {
                     </CardContent>
                   </Card>
                 ))
-              ) : showPlaceholder ? (
+              ) : (
                 <div className="col-span-full">
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
@@ -368,12 +415,12 @@ export default function AdminActivitiesPage() {
                     </CardContent>
                   </Card>
                 </div>
-              ) : null}
+              )}
             </div>
           ) : (
             /* Advanced Table View */
             <div className="border rounded-lg">
-              {isLoading ? (
+              {loading ? (
                 <div className="p-8">
                   <div className="animate-pulse space-y-4">
                     <div className="h-4 bg-muted rounded w-full"></div>
@@ -479,25 +526,70 @@ export default function AdminActivitiesPage() {
                         {visibleColumns.name && (
                           <TableCell className="font-medium">
                             <div className="flex flex-col">
-                              <span className="font-semibold">{activity.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                ID: {activity.id.slice(0, 8)}...
-                              </span>
+                              {editingCell?.activityId === activity.id && editingCell?.field === 'name' ? (
+                                <Input
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onKeyDown={handleKeyPress}
+                                  onBlur={handleCellSave}
+                                  autoFocus
+                                  className="h-8"
+                                />
+                              ) : (
+                                <span 
+                                  className={`font-semibold ${isEditMode ? 'cursor-pointer hover:bg-muted/50 px-2 py-1 rounded' : ''}`}
+                                  onClick={() => handleCellClick(activity.id, 'name', activity.name)}
+                                >
+                                  {activity.name}
+                                </span>
+                              )}
                             </div>
                           </TableCell>
                         )}
                         {visibleColumns.description && (
                           <TableCell>
-                            <div className="max-w-[300px] truncate text-sm text-muted-foreground">
-                              {activity.description || "No description provided"}
+                            <div className="max-w-[300px]">
+                              {editingCell?.activityId === activity.id && editingCell?.field === 'description' ? (
+                                <Input
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onKeyDown={handleKeyPress}
+                                  onBlur={handleCellSave}
+                                  autoFocus
+                                  className="h-8"
+                                />
+                              ) : (
+                                <div 
+                                  className={`truncate text-sm text-muted-foreground ${isEditMode ? 'cursor-pointer hover:bg-muted/50 px-2 py-1 rounded' : ''}`}
+                                  onClick={() => handleCellClick(activity.id, 'description', activity.description)}
+                                >
+                                  {activity.description || "No description provided"}
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                         )}
                         {visibleColumns.category && (
                           <TableCell>
-                            <Badge variant="outline">
-                              {activity.category || 'Uncategorized'}
-                            </Badge>
+                            {editingCell?.activityId === activity.id && editingCell?.field === 'category' ? (
+                              <Input
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onKeyDown={handleKeyPress}
+                                onBlur={handleCellSave}
+                                autoFocus
+                                className="h-8"
+                              />
+                            ) : (
+                              <div 
+                                className={`${isEditMode ? 'cursor-pointer hover:bg-muted/50 px-2 py-1 rounded' : ''}`}
+                                onClick={() => handleCellClick(activity.id, 'category', activity.category)}
+                              >
+                                <Badge variant="outline">
+                                  {activity.category || 'Uncategorized'}
+                                </Badge>
+                              </div>
+                            )}
                           </TableCell>
                         )}
                         {visibleColumns.staff && (
@@ -581,7 +673,7 @@ export default function AdminActivitiesPage() {
                     ))}
                   </TableBody>
                 </Table>
-              ) : showPlaceholder ? (
+              ) : (
                 <div className="p-12">
                   <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
@@ -608,7 +700,7 @@ export default function AdminActivitiesPage() {
                     </CardContent>
                   </Card>
                 </div>
-              ) : null}
+              )}
             </div>
           )}
           {/* Activity Details Modal */}
@@ -619,9 +711,6 @@ export default function AdminActivitiesPage() {
               onOpenChange={(open) => {
                 setModalOpen(open)
                 if (!open) setSelectedActivityId(null)
-              }}
-              onOptimisticUpdate={(updatedActivity) => {
-                setActivities((prev) => prev.map(p => p.id === updatedActivity.id ? { ...p, ...updatedActivity } : p))
               }}
               organizationId={organizationId || ""}
             />
