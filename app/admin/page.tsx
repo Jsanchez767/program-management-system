@@ -139,45 +139,44 @@ export default function AdminDashboard() {
       <AdminSidebar />
       <div className="lg:pl-64">
         <main className="p-6 lg:p-8 pt-20 lg:pt-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-              <p className="text-muted-foreground">
-                Welcome to the program management system admin dashboard
-              </p>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome to the program management system admin dashboard
+            </p>
+          </div>
 
-            {/* Tabs for different dashboard views */}
-            <Tabs defaultValue="realtime" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="realtime">🔴 Live Dashboard</TabsTrigger>
-                <TabsTrigger value="legacy">📊 Legacy Dashboard</TabsTrigger>
-              </TabsList>
+          {/* Tabs for different dashboard views */}
+          <Tabs defaultValue="realtime" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="realtime">🔴 Live Dashboard</TabsTrigger>
+              <TabsTrigger value="legacy">📊 Legacy Dashboard</TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="realtime" className="space-y-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-muted-foreground">
-                    Live updates enabled - Data streams in real-time
-                  </span>
+            <TabsContent value="realtime" className="space-y-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-muted-foreground">
+                  Live updates enabled - Data streams in real-time
+                </span>
+              </div>
+              <RealtimeDashboard />
+            </TabsContent>
+
+            <TabsContent value="legacy" className="space-y-6">
+              {/* Stats Grid */}
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {[...Array(4)].map((_, i) => (
+                    <Card key={i} className="animate-pulse">
+                      <CardContent className="p-6">
+                        <div className="h-16 bg-muted rounded"></div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <RealtimeDashboard />
-              </TabsContent>
-
-              <TabsContent value="legacy" className="space-y-6">
-                {/* Stats Grid */}
-                {isLoading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {[...Array(4)].map((_, i) => (
-                      <Card key={i} className="animate-pulse">
-                        <CardContent className="p-6">
-                          <div className="h-16 bg-muted rounded"></div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   <StatsCard
                     title="Total Activities"
                     value={stats.totalActivities}
