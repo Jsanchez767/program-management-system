@@ -17,8 +17,14 @@ export const dynamic = 'force-dynamic'
 export default function AdminProgramsPage() {
   const { user } = useUser()
   const organizationId = user?.user_metadata?.organization_id
-  const programs = useRealtimePrograms(organizationId || "")
+  const realtimePrograms = useRealtimePrograms(organizationId || "")
+  const [programs, setPrograms] = useState<any[]>([])
   const isLoading = !organizationId
+
+  // Sync local programs state with realtime updates
+  useEffect(() => {
+    setPrograms(realtimePrograms || [])
+  }, [realtimePrograms])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -153,9 +159,8 @@ export default function AdminProgramsPage() {
                 setModalOpen(open)
                 if (!open) setSelectedProgramId(null)
               }}
-              onEdit={() => {
-                setEditProgramId(selectedProgramId)
-                setEditModalOpen(true)
+              onOptimisticUpdate={(updatedProgram) => {
+                setPrograms((prev) => prev.map(p => p.id === updatedProgram.id ? { ...p, ...updatedProgram } : p))
               }}
               organizationId={organizationId || ""}
             />
