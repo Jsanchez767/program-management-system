@@ -145,14 +145,12 @@ export default function AdminDashboard() {
               Welcome to the program management system admin dashboard
             </p>
           </div>
-
           {/* Tabs for different dashboard views */}
           <Tabs defaultValue="realtime" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="realtime">🔴 Live Dashboard</TabsTrigger>
               <TabsTrigger value="legacy">📊 Legacy Dashboard</TabsTrigger>
             </TabsList>
-
             <TabsContent value="realtime" className="space-y-6">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -162,7 +160,6 @@ export default function AdminDashboard() {
               </div>
               <RealtimeDashboard />
             </TabsContent>
-
             <TabsContent value="legacy" className="space-y-6">
               {/* Stats Grid */}
               {isLoading ? (
@@ -201,126 +198,121 @@ export default function AdminDashboard() {
                     icon={Clock}
                     trend={{ value: 5, isPositive: false }}
                   />
+                </div>
+              )}
+              {isLoading ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {[...Array(2)].map((_, i) => (
+                      <Card key={i} className="animate-pulse">
+                        <CardContent className="p-6">
+                          <div className="h-24 bg-muted rounded"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                )}
-
-                {isLoading ? (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {[...Array(2)].map((_, i) => (
-                        <Card key={i} className="animate-pulse">
-                          <CardContent className="p-6">
-                            <div className="h-24 bg-muted rounded"></div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    <Card className="animate-pulse">
-                      <CardContent className="p-6">
-                        <div className="h-32 bg-muted rounded"></div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ) : (
-                  <>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  {/* Quick Stats */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <ShoppingCart className="h-5 w-5" />
-                        Purchase Orders
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span>Pending Documents</span>
-                          <span className="font-semibold">{stats.pendingDocuments}</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          <p className="text-sm text-muted-foreground">{stats.pendingDocuments} need review</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Documents */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        Documents
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span>Pending Review</span>
-                          <span className="font-semibold">{stats.pendingDocuments}</span>
-                        </div>
-                      </div>
+                  <Card className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-32 bg-muted rounded"></div>
                     </CardContent>
                   </Card>
                 </div>
-
-                {/* Recent Activities */}
-                <Card className="mb-8">
-                  <CardHeader>
-                    <CardTitle>Recent Activities</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {recentActivities.length > 0 ? (
-                        recentActivities.map((activity: ActivityWithInstructor) => (
-                          <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
-                            <div>
-                              <h3 className="font-semibold">{activity.name}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Staff: {activity.staff_metadata?.first_name} {activity.staff_metadata?.last_name}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                activity.status === 'active' ? 'bg-green-100 text-green-800' :
-                                activity.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {activity.status}
-                              </span>
-                            </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    {/* Quick Stats */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <ShoppingCart className="h-5 w-5" />
+                          Purchase Orders
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span>Pending Documents</span>
+                            <span className="font-semibold">{stats.pendingDocuments}</span>
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-muted-foreground text-center py-8">No programs found</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Alerts */}
-                {stats.pendingDocuments > 0 && (
-                  <Card>
+                          <div className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground">{stats.pendingDocuments} need review</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    {/* Documents */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          Documents
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span>Pending Review</span>
+                            <span className="font-semibold">{stats.pendingDocuments}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  {/* Recent Activities */}
+                  <Card className="mb-8">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <AlertCircle className="h-5 w-5 text-orange-500" />
-                        Action Required
-                      </CardTitle>
+                      <CardTitle>Recent Activities</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2 text-sm">
-                        {stats.pendingDocuments > 0 && (
-                          <p>• {stats.pendingDocuments} documents need review</p>
+                      <div className="space-y-4">
+                        {recentActivities.length > 0 ? (
+                          recentActivities.map((activity: ActivityWithInstructor) => (
+                            <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                              <div>
+                                <h3 className="font-semibold">{activity.name}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  Staff: {activity.staff_metadata?.first_name} {activity.staff_metadata?.last_name}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  activity.status === 'active' ? 'bg-green-100 text-green-800' :
+                                  activity.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {activity.status}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground text-center py-8">No programs found</p>
                         )}
                       </div>
                     </CardContent>
                   </Card>
-                )}
+                  {/* Alerts */}
+                  {stats.pendingDocuments > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <AlertCircle className="h-5 w-5 text-orange-500" />
+                          Action Required
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          {stats.pendingDocuments > 0 && (
+                            <p>• {stats.pendingDocuments} documents need review</p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 </>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>
