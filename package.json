@@ -6,7 +6,11 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "sql:show": "node scripts/run-sql-simple.js",
+    "sql:show-signup-fix": "node scripts/run-sql-simple.js scripts/fix-organization-signup-policy.sql",
+    "sql:show-create-function": "node scripts/run-sql-simple.js scripts/create-organization-signup-function.sql",
+    "sql:show-diagnose": "node scripts/run-sql-simple.js scripts/diagnose-signup-issues.sql"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
