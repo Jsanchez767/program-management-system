@@ -26,7 +26,8 @@ export default function AdminProgramsPage() {
   // Sync local programs state with realtime updates
   useEffect(() => {
     setPrograms(realtimePrograms || [])
-    if (realtimePrograms) setIsLoaded(true)
+    // Set loaded to true once we receive data (even if empty array)
+    if (realtimePrograms !== null) setIsLoaded(true)
   }, [realtimePrograms])
 
   const getStatusColor = (status: string) => {
@@ -125,7 +126,7 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               ))
-            ) : (
+            ) : isLoaded ? (
               <div className="col-span-full">
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
@@ -147,7 +148,7 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               </div>
-            )}
+            ) : null}
           </div>
           {/* Program Details Modal */}
           {selectedProgramId && (
