@@ -36,8 +36,12 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
     }
   }, [programs, programId])
 
-  // Defensive: Don't render modal if program is missing
-  if (!program) {
+  // Show nothing while fetching program data
+  if (!program && Array.isArray(programs)) {
+    return null;
+  }
+  // Show error only if programs is loaded and program is still missing
+  if (!program && Array.isArray(programs) && programs.length > 0) {
     return (
       <div className="p-6 text-center">
         <AlertCircle className="mx-auto mb-2 text-red-500" size={32} />
