@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { CheckCircle, Loader2 } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -42,18 +42,14 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
     setForm(program)
   }
 
-  const handleChange = async (field: string, value: any) => {
-    const updated = { ...form, [field]: value }
-    setForm(updated)
-    setProgram(updated)
-    // Optimistically update parent
-    if (typeof onOptimisticUpdate === 'function') {
-      onOptimisticUpdate({ ...updated, id: programId })
-    }
-    // Show saving indicator
+  // Debounce save logic
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const lastFieldRef = useRef<string>("")
+  const lastValueRef = useRef<any>("")
+
+  const saveField = async (field: string, value: any) => {
     setSaving(true)
     setSaved(false)
-    // Backend auto-save
     try {
       await fetch(`/api/programs/${programId}`, {
         method: 'PATCH',
@@ -71,9 +67,24 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
     }
   }
 
+  const handleChange = (field: string, value: any) => {
+    const updated = { ...form, [field]: value }
+    setForm(updated)
+    setProgram(updated)
+    if (typeof onOptimisticUpdate === 'function') {
+      onOptimisticUpdate({ ...updated, id: programId })
+    }
+    lastFieldRef.current = field
+    lastValueRef.current = value
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      saveField(lastFieldRef.current, lastValueRef.current)
+    }, 400)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-full p-0">
+  <DialogContent className="max-w-2xl w-full p-0 overflow-y-auto" style={{ maxHeight: '90vh' }}>
         <Card className="p-8 rounded-xl shadow-lg border border-muted bg-background">
           <CardHeader className="pb-4 flex items-center justify-between">
             <h2 className="text-xl font-bold">Program Details</h2>
@@ -223,8 +234,8 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
         </Card>
       </DialogContent>
     </Dialog>
+  );
 }
 
 export default ProgramModal;
-  )
 }
