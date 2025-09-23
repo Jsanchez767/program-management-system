@@ -75,7 +75,7 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               ))
-            ) : programs && programs.length > 0 ? (
+            ) : (programs && programs.length > 0 ? (
               programs.map((program: any) => (
                 <Card key={program.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
@@ -127,7 +127,7 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               ))
-            ) : (
+            ) : (!isLoading && (!programs || programs.length === 0) ? (
               <div className="col-span-full">
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
@@ -149,7 +149,7 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               </div>
-            )}
+            ) : null))}
           </div>
           {/* Program Details Modal */}
           {selectedProgramId && (
