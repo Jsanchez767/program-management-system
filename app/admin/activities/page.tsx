@@ -8,12 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
-import { Grid, List, MoreHorizontal, Edit, Trash2 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu"
+import { Input } from "@/shared/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import { Grid, List, MoreHorizontal, Edit, Trash2, Search, Filter, Eye, EyeOff, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/shared/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover"
 import Link from "next/link"
 import { useRealtimeActivities } from "@/lib/realtime-hooks"
 import { useUser } from "@/shared/hooks/use-user"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import ActivityModal from "./[id]/ActivityModal"
 
 // Force dynamic rendering
@@ -27,6 +30,30 @@ export default function AdminActivitiesPage() {
   const [isMounted, setIsMounted] = useState(false)
   const [showPlaceholder, setShowPlaceholder] = useState(false)
   const isLoading = !organizationId || !hasDataLoaded || !isMounted
+
+  // Modal and view state
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editActivityId, setEditActivityId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  
+  // Advanced table state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [sortColumn, setSortColumn] = useState<string>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [visibleColumns, setVisibleColumns] = useState({
+    name: true,
+    description: true,
+    staff: true,
+    participants: true,
+    dates: true,
+    status: true,
+    category: true,
+    actions: true
+  })
 
   // Ensure we're client-side before showing any content
   useEffect(() => {
@@ -54,6 +81,83 @@ export default function AdminActivitiesPage() {
     }
   }, [realtimeActivities, organizationId])
 
+  // Filter and sort activities
+  const filteredAndSortedActivities = useMemo(() => {
+    let filtered = activities.filter((activity: any) => {
+      // Search filter
+      const matchesSearch = activity.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           activity.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           activity.staff?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           activity.staff?.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || activity.status === statusFilter
+      
+      // Category filter
+      const matchesCategory = categoryFilter === 'all' || activity.category === categoryFilter
+      
+      return matchesSearch && matchesStatus && matchesCategory
+    })
+
+    // Sort
+    filtered.sort((a: any, b: any) => {
+      let aValue = a[sortColumn]
+      let bValue = b[sortColumn]
+      
+      // Handle special cases
+      if (sortColumn === 'staff') {
+        aValue = a.staff ? `${a.staff.first_name} ${a.staff.last_name}` : ''
+        bValue = b.staff ? `${b.staff.first_name} ${b.staff.last_name}` : ''
+      } else if (sortColumn === 'participants') {
+        aValue = a.current_participants || 0
+        bValue = b.current_participants || 0
+      } else if (sortColumn === 'dates') {
+        aValue = a.start_date || ''
+        bValue = b.start_date || ''
+      }
+      
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
+
+    return filtered
+  }, [activities, searchTerm, statusFilter, categoryFilter, sortColumn, sortDirection])
+
+  // Get unique values for filters
+  const uniqueStatuses = useMemo(() => {
+    const statuses = activities.map((activity: any) => activity.status).filter(Boolean)
+    return [...new Set(statuses)]
+  }, [activities])
+
+  const uniqueCategories = useMemo(() => {
+    const categories = activities.map((activity: any) => activity.category).filter(Boolean)
+    return [...new Set(categories)]
+  }, [activities])
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const toggleColumnVisibility = (column: keyof typeof visibleColumns) => {
+    setVisibleColumns(prev => ({
+      ...prev,
+      [column]: !prev[column]
+    }))
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -67,12 +171,6 @@ export default function AdminActivitiesPage() {
     }
   }
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editActivityId, setEditActivityId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
-
   return (
     <div className="min-h-screen bg-background">
       <AdminSidebar />
@@ -80,38 +178,112 @@ export default function AdminActivitiesPage() {
       <div className="lg:pl-64">
         <main className="p-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Activities</h1>
-              <p className="text-muted-foreground mt-2">Manage all educational activities and programs</p>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* View Toggle */}
-              <div className="flex items-center border rounded-lg p-1">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="h-8"
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'table' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('table')}
-                  className="h-8"
-                >
-                  <List className="h-4 w-4" />
+          <div className="flex flex-col gap-4 mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Activities</h1>
+                <p className="text-muted-foreground mt-2">Manage all educational activities and programs</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {/* View Toggle */}
+                <div className="flex items-center border rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="h-8"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'table' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('table')}
+                    className="h-8"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button asChild>
+                  <Link href="/admin/activities/new">
+                    <span className="mr-2">➕</span>
+                    New Activity
+                  </Link>
                 </Button>
               </div>
-              <Button asChild>
-                <Link href="/admin/activities/new">
-                  <span className="mr-2">➕</span>
-                  New Activity
-                </Link>
-              </Button>
             </div>
+
+            {/* Advanced Controls - Only show in table view */}
+            {viewMode === 'table' && (
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-muted/50 p-4 rounded-lg">
+                <div className="flex flex-col sm:flex-row gap-3 flex-1">
+                  {/* Search */}
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Search activities..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+
+                  {/* Status Filter */}
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      {uniqueStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Category Filter */}
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {uniqueCategories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Column Visibility */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Eye className="mr-2 h-4 w-4" />
+                      Columns
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {Object.entries(visibleColumns).map(([column, isVisible]) => (
+                      <DropdownMenuCheckboxItem
+                        key={column}
+                        checked={isVisible}
+                        onCheckedChange={() => toggleColumnVisibility(column as keyof typeof visibleColumns)}
+                        className="capitalize"
+                      >
+                        {column === 'actions' ? 'Actions' : column}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
           </div>
 
           {/* Activities Content */}
@@ -126,8 +298,8 @@ export default function AdminActivitiesPage() {
                     </CardContent>
                   </Card>
                 ))
-              ) : activities.length > 0 ? (
-                activities.map((activity: any) => (
+              ) : filteredAndSortedActivities.length > 0 ? (
+                filteredAndSortedActivities.map((activity: any) => (
                   <Card key={activity.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
                       <div className="flex items-start justify-between">
@@ -199,7 +371,7 @@ export default function AdminActivitiesPage() {
               ) : null}
             </div>
           ) : (
-            /* Table View */
+            /* Advanced Table View */
             <div className="border rounded-lg">
               {isLoading ? (
                 <div className="p-8">
@@ -209,100 +381,202 @@ export default function AdminActivitiesPage() {
                     <div className="h-4 bg-muted rounded w-1/2"></div>
                   </div>
                 </div>
-              ) : activities.length > 0 ? (
+              ) : filteredAndSortedActivities.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[250px]">Activity Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Staff</TableHead>
-                      <TableHead>Participants</TableHead>
-                      <TableHead>Dates</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="w-[100px]">Actions</TableHead>
+                      {visibleColumns.name && (
+                        <TableHead className="w-[200px]">
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort('name')}
+                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                          >
+                            Activity Name
+                            {sortColumn === 'name' && (
+                              sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableHead>
+                      )}
+                      {visibleColumns.description && <TableHead>Description</TableHead>}
+                      {visibleColumns.category && (
+                        <TableHead>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort('category')}
+                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                          >
+                            Category
+                            {sortColumn === 'category' && (
+                              sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableHead>
+                      )}
+                      {visibleColumns.staff && (
+                        <TableHead>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort('staff')}
+                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                          >
+                            Staff
+                            {sortColumn === 'staff' && (
+                              sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableHead>
+                      )}
+                      {visibleColumns.participants && (
+                        <TableHead>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort('participants')}
+                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                          >
+                            Participants
+                            {sortColumn === 'participants' && (
+                              sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableHead>
+                      )}
+                      {visibleColumns.dates && (
+                        <TableHead>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort('dates')}
+                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                          >
+                            Dates
+                            {sortColumn === 'dates' && (
+                              sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableHead>
+                      )}
+                      {visibleColumns.status && (
+                        <TableHead>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort('status')}
+                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                          >
+                            Status
+                            {sortColumn === 'status' && (
+                              sortDirection === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableHead>
+                      )}
+                      {visibleColumns.actions && <TableHead className="w-[100px]">Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {activities.map((activity: any) => (
+                    {filteredAndSortedActivities.map((activity: any) => (
                       <TableRow key={activity.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">
-                          <div className="flex flex-col">
-                            <span className="font-semibold">{activity.name}</span>
-                            <span className="text-xs text-muted-foreground">{activity.category || 'No category'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-[300px] truncate text-sm text-muted-foreground">
-                            {activity.description || "No description provided"}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {activity.staff ? (
-                            <div className="text-sm">
-                              {activity.staff.first_name} {activity.staff.last_name}
+                        {visibleColumns.name && (
+                          <TableCell className="font-medium">
+                            <div className="flex flex-col">
+                              <span className="font-semibold">{activity.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                ID: {activity.id.slice(0, 8)}...
+                              </span>
                             </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Not assigned</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {activity.current_participants || 0} / {activity.max_participants || "∞"}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {activity.start_date ? (
-                              <div>
-                                <div>{new Date(activity.start_date).toLocaleDateString()}</div>
-                                {activity.end_date && (
-                                  <div className="text-muted-foreground">
-                                    to {new Date(activity.end_date).toLocaleDateString()}
-                                  </div>
-                                )}
+                          </TableCell>
+                        )}
+                        {visibleColumns.description && (
+                          <TableCell>
+                            <div className="max-w-[300px] truncate text-sm text-muted-foreground">
+                              {activity.description || "No description provided"}
+                            </div>
+                          </TableCell>
+                        )}
+                        {visibleColumns.category && (
+                          <TableCell>
+                            <Badge variant="outline">
+                              {activity.category || 'Uncategorized'}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleColumns.staff && (
+                          <TableCell>
+                            {activity.staff ? (
+                              <div className="text-sm">
+                                {activity.staff.first_name} {activity.staff.last_name}
                               </div>
                             ) : (
-                              <span className="text-muted-foreground">No dates set</span>
+                              <span className="text-sm text-muted-foreground">Not assigned</span>
                             )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(activity.status)}>
-                            {activity.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedActivityId(activity.id)
-                                  setModalOpen(true)
-                                }}
-                              >
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditActivityId(activity.id)
-                                  setEditModalOpen(true)
-                                }}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
+                          </TableCell>
+                        )}
+                        {visibleColumns.participants && (
+                          <TableCell>
+                            <div className="text-sm">
+                              {activity.current_participants || 0} / {activity.max_participants || "∞"}
+                            </div>
+                          </TableCell>
+                        )}
+                        {visibleColumns.dates && (
+                          <TableCell>
+                            <div className="text-sm">
+                              {activity.start_date ? (
+                                <div>
+                                  <div>{new Date(activity.start_date).toLocaleDateString()}</div>
+                                  {activity.end_date && (
+                                    <div className="text-muted-foreground">
+                                      to {new Date(activity.end_date).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">No dates set</span>
+                              )}
+                            </div>
+                          </TableCell>
+                        )}
+                        {visibleColumns.status && (
+                          <TableCell>
+                            <Badge className={getStatusColor(activity.status)}>
+                              {activity.status}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleColumns.actions && (
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedActivityId(activity.id)
+                                    setModalOpen(true)
+                                  }}
+                                >
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setEditActivityId(activity.id)
+                                    setEditModalOpen(true)
+                                  }}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -315,16 +589,21 @@ export default function AdminActivitiesPage() {
                         <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
                           <span className="text-4xl">📚</span>
                         </div>
-                        <h3 className="text-lg font-medium text-foreground mb-2">No activities yet</h3>
+                        <h3 className="text-lg font-medium text-foreground mb-2">No activities found</h3>
                         <p className="text-muted-foreground mb-6">
-                          Get started by creating your first educational activity.
+                          {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all' 
+                            ? "Try adjusting your filters or search terms."
+                            : "Get started by creating your first educational activity."
+                          }
                         </p>
-                        <Button asChild>
-                          <Link href="/admin/activities/new">
-                            <span className="mr-2">➕</span>
-                            Create Activity
-                          </Link>
-                        </Button>
+                        {(!searchTerm && statusFilter === 'all' && categoryFilter === 'all') && (
+                          <Button asChild>
+                            <Link href="/admin/activities/new">
+                              <span className="mr-2">➕</span>
+                              Create Activity
+                            </Link>
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

@@ -1,0 +1,487 @@
+"use client"
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+import EditActivityModal from "./[id]/EditActivityModal"
+
+import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Button } from "@/shared/components/ui/button"
+import { Badge } from "@/shared/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
+import { Input } from "@/shared/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import { Checkbox } from "@/shared/components/ui/checkbox"
+import { Grid, List, MoreHorizontal, Edit, Trash2, Search, Filter, Eye, EyeOff, ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/shared/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover"
+import Link from "next/link"
+import { useRealtimeActivities } from "@/lib/realtime-hooks"
+import { useUser } from "@/shared/hooks/use-user"
+import { useEffect, useState, useMemo } from "react"
+import ActivityModal from "./[id]/ActivityModal"
+
+// Force dynamic rendering
+
+export default function AdminActivitiesPage() {
+  const { user } = useUser()
+  const organizationId = user?.user_metadata?.organization_id
+  const realtimeActivities = useRealtimeActivities(organizationId || "")
+  const [activities, setActivities] = useState<any[]>([])
+  const [hasDataLoaded, setHasDataLoaded] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const [showPlaceholder, setShowPlaceholder] = useState(false)
+  const isLoading = !organizationId || !hasDataLoaded || !isMounted
+
+  // Modal and view state
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editActivityId, setEditActivityId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  
+  // Advanced table state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [sortColumn, setSortColumn] = useState<string>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [visibleColumns, setVisibleColumns] = useState({
+    name: true,
+    description: true,
+    staff: true,
+    participants: true,
+    dates: true,
+    status: true,
+    category: true,
+    actions: true
+  })
+
+  // Ensure we're client-side before showing any content
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Delayed placeholder - only show after 3 seconds if no programs and data has loaded
+  useEffect(() => {
+    if (hasDataLoaded && isMounted && activities.length === 0) {
+      const timer = setTimeout(() => {
+        setShowPlaceholder(true)
+      }, 3000) // 3 second delay
+
+      return () => clearTimeout(timer)
+    } else {
+      setShowPlaceholder(false)
+    }
+  }, [hasDataLoaded, isMounted, activities.length])
+
+  // Filter and sort activities
+  const filteredAndSortedActivities = useMemo(() => {
+    let filtered = activities.filter((activity: any) => {
+      // Search filter
+      const matchesSearch = activity.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           activity.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           activity.staff?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           activity.staff?.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || activity.status === statusFilter
+      
+      // Category filter
+      const matchesCategory = categoryFilter === 'all' || activity.category === categoryFilter
+      
+      return matchesSearch && matchesStatus && matchesCategory
+    })
+
+    // Sort
+    filtered.sort((a: any, b: any) => {
+      let aValue = a[sortColumn]
+      let bValue = b[sortColumn]
+      
+      // Handle special cases
+      if (sortColumn === 'staff') {
+        aValue = a.staff ? `${a.staff.first_name} ${a.staff.last_name}` : ''
+        bValue = b.staff ? `${b.staff.first_name} ${b.staff.last_name}` : ''
+      } else if (sortColumn === 'participants') {
+        aValue = a.current_participants || 0
+        bValue = b.current_participants || 0
+      } else if (sortColumn === 'dates') {
+        aValue = a.start_date || ''
+        bValue = b.start_date || ''
+      }
+      
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
+
+    return filtered
+  }, [activities, searchTerm, statusFilter, categoryFilter, sortColumn, sortDirection])
+
+  // Get unique values for filters
+  const uniqueStatuses = useMemo(() => {
+    const statuses = activities.map((activity: any) => activity.status).filter(Boolean)
+    return [...new Set(statuses)]
+  }, [activities])
+
+  const uniqueCategories = useMemo(() => {
+    const categories = activities.map((activity: any) => activity.category).filter(Boolean)
+    return [...new Set(categories)]
+  }, [activities])
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const toggleColumnVisibility = (column: string) => {
+    setVisibleColumns(prev => ({
+      ...prev,
+      [column]: !prev[column]
+    }))
+  }
+
+  // Sync local activities state with realtime updates
+  useEffect(() => {
+    if (organizationId && realtimeActivities !== undefined) {
+      setActivities(realtimeActivities || [])
+      setHasDataLoaded(true)
+    }
+  }, [realtimeActivities, organizationId])
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+      case "completed":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+      case "cancelled":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+    }
+  }
+
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editActivityId, setEditActivityId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  
+  // Advanced table state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [sortColumn, setSortColumn] = useState<string>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [visibleColumns, setVisibleColumns] = useState({
+    name: true,
+    description: true,
+    staff: true,
+    participants: true,
+    dates: true,
+    status: true,
+    category: true,
+    actions: true
+  })
+
+  return (
+    <div className="min-h-screen bg-background">
+      <AdminSidebar />
+
+      <div className="lg:pl-64">
+        <main className="p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Activities</h1>
+              <p className="text-muted-foreground mt-2">Manage all educational activities and programs</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* View Toggle */}
+              <div className="flex items-center border rounded-lg p-1">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="h-8"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className="h-8"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button asChild>
+                <Link href="/admin/activities/new">
+                  <span className="mr-2">➕</span>
+                  New Activity
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Activities Content */}
+          {viewMode === 'grid' ? (
+            /* Grid View */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {isLoading ? (
+                [...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-32 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : activities.length > 0 ? (
+                activities.map((activity: any) => (
+                  <Card key={activity.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-lg">{activity.name}</CardTitle>
+                        <Badge className={getStatusColor(activity.status)}>{activity.status}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {activity.description || "No description provided"}
+                      </p>
+                      <div className="space-y-2">
+                        {activity.staff && (
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <span className="mr-2">👤</span>
+                            {activity.staff.first_name} {activity.staff.last_name}
+                          </div>
+                        )}
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <span className="mr-2">👥</span>
+                          {activity.current_participants || 0} / {activity.max_participants || "Unlimited"} participants
+                        </div>
+                        {activity.start_date && (
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <span className="mr-2">📅</span>
+                            {new Date(activity.start_date).toLocaleDateString()}
+                            {activity.end_date && ` - ${new Date(activity.end_date).toLocaleDateString()}`}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2 pt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-transparent"
+                          onClick={() => {
+                            setSelectedActivityId(activity.id)
+                            setModalOpen(true)
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : showPlaceholder ? (
+                <div className="col-span-full">
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                      <div className="text-center">
+                        <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
+                          <span className="text-4xl">📚</span>
+                        </div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">No activities yet</h3>
+                        <p className="text-muted-foreground mb-6">
+                          Get started by creating your first educational activity.
+                        </p>
+                        <Button asChild>
+                          <Link href="/admin/activities/new">
+                            <span className="mr-2">➕</span>
+                            Create Activity
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            /* Table View */
+            <div className="border rounded-lg">
+              {isLoading ? (
+                <div className="p-8">
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-4 bg-muted rounded w-full"></div>
+                    <div className="h-4 bg-muted rounded w-3/4"></div>
+                    <div className="h-4 bg-muted rounded w-1/2"></div>
+                  </div>
+                </div>
+              ) : activities.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[250px]">Activity Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Staff</TableHead>
+                      <TableHead>Participants</TableHead>
+                      <TableHead>Dates</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {activities.map((activity: any) => (
+                      <TableRow key={activity.id} className="hover:bg-muted/50">
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{activity.name}</span>
+                            <span className="text-xs text-muted-foreground">{activity.category || 'No category'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-[300px] truncate text-sm text-muted-foreground">
+                            {activity.description || "No description provided"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {activity.staff ? (
+                            <div className="text-sm">
+                              {activity.staff.first_name} {activity.staff.last_name}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">Not assigned</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {activity.current_participants || 0} / {activity.max_participants || "∞"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {activity.start_date ? (
+                              <div>
+                                <div>{new Date(activity.start_date).toLocaleDateString()}</div>
+                                {activity.end_date && (
+                                  <div className="text-muted-foreground">
+                                    to {new Date(activity.end_date).toLocaleDateString()}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">No dates set</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(activity.status)}>
+                            {activity.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedActivityId(activity.id)
+                                  setModalOpen(true)
+                                }}
+                              >
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditActivityId(activity.id)
+                                  setEditModalOpen(true)
+                                }}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : showPlaceholder ? (
+                <div className="p-12">
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                      <div className="text-center">
+                        <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
+                          <span className="text-4xl">📚</span>
+                        </div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">No activities yet</h3>
+                        <p className="text-muted-foreground mb-6">
+                          Get started by creating your first educational activity.
+                        </p>
+                        <Button asChild>
+                          <Link href="/admin/activities/new">
+                            <span className="mr-2">➕</span>
+                            Create Activity
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : null}
+            </div>
+          )}
+          {/* Activity Details Modal */}
+          {selectedActivityId && (
+            <ActivityModal
+              activityId={selectedActivityId}
+              open={modalOpen}
+              onOpenChange={(open) => {
+                setModalOpen(open)
+                if (!open) setSelectedActivityId(null)
+              }}
+              onOptimisticUpdate={(updatedActivity) => {
+                setActivities((prev) => prev.map(p => p.id === updatedActivity.id ? { ...p, ...updatedActivity } : p))
+              }}
+              organizationId={organizationId || ""}
+            />
+          )}
+          {/* Edit Activity Modal */}
+          {editActivityId && (
+            <EditActivityModal
+              activityId={editActivityId}
+              open={editModalOpen}
+              onOpenChange={(open) => {
+                setEditModalOpen(open)
+                if (!open) setEditActivityId(null)
+              }}
+            />
+          )}
+        </main>
+      </div>
+    </div>
+  )
+}
