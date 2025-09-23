@@ -33,37 +33,16 @@ export default function InvitationsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Try multiple ways to get organization_id
-      let organizationId = user.user_metadata?.organization_id
-
-      // If not in metadata, try to find organization where user is admin
-      if (!organizationId) {
-        const { data: adminOrg } = await supabase
-          .from('organizations')
-          .select('*')
-          .eq('admin_id', user.id)
-          .single()
-        
-        if (adminOrg) {
-          organizationId = adminOrg.id
-          setOrganization(adminOrg)
-          return
-        }
-      }
-
-      // If we have organizationId from metadata, fetch the organization
+      // Get organization_id from user metadata
+      const organizationId = user.user_metadata?.organization_id
       if (organizationId) {
-        const { data: org, error } = await supabase
+        const { data: org } = await supabase
           .from('organizations')
           .select('*')
           .eq('id', organizationId)
           .single()
         
-        if (error) {
-          console.error('Error fetching organization:', error)
-        } else {
-          setOrganization(org)
-        }
+        setOrganization(org)
       }
     } catch (error) {
       console.error('Error loading organization:', error)
