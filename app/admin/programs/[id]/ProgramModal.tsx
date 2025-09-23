@@ -1,17 +1,27 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
+import { CheckCircle, Loader2 } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { useRealtimePrograms } from "@/lib/realtime-hooks"
-export default function ProgramModal({ programId, open, onOpenChange, onEdit, organizationId }: { programId: string, open: boolean, onOpenChange: (open: boolean) => void, onEdit: (updated?: any) => void, organizationId: string }) {
+type ProgramModalProps = {
+  programId: string,
+  open: boolean,
+  onOpenChange: (open: boolean) => void,
+  onOptimisticUpdate?: (updated: any) => void,
+  organizationId: string
+}
+
+function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organizationId }: ProgramModalProps) {
   const [program, setProgram] = useState<any>(null)
   const programs = useRealtimePrograms(organizationId)
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState<any>(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     if (programs && programId) {
@@ -36,6 +46,13 @@ export default function ProgramModal({ programId, open, onOpenChange, onEdit, or
     const updated = { ...form, [field]: value }
     setForm(updated)
     setProgram(updated)
+    // Optimistically update parent
+    if (typeof onOptimisticUpdate === 'function') {
+      onOptimisticUpdate({ ...updated, id: programId })
+    }
+    // Show saving indicator
+    setSaving(true)
+    setSaved(false)
     // Backend auto-save
     try {
       await fetch(`/api/programs/${programId}`, {
@@ -45,9 +62,11 @@ export default function ProgramModal({ programId, open, onOpenChange, onEdit, or
         },
         body: JSON.stringify({ [field]: value }),
       })
-      // Optionally show a toast or loading indicator here
+      setSaving(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 1200)
     } catch (err) {
-      // Optionally handle error (e.g., show toast)
+      setSaving(false)
       console.error('Failed to save', err)
     }
   }
@@ -57,12 +76,22 @@ export default function ProgramModal({ programId, open, onOpenChange, onEdit, or
       <DialogContent className="max-w-2xl w-full p-0">
         <Card className="p-8 rounded-xl shadow-lg border border-muted bg-background">
           <CardHeader className="pb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold">Program Details</h2>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold">Program Details</h2>
               {editMode ? (
                 <Button variant="ghost" onClick={handleCancel}>Cancel</Button>
               ) : (
                 <Button variant="outline" onClick={handleEdit}>Edit</Button>
+              )}
+              {editMode && (
+                <span className="flex items-center text-xs text-muted-foreground ml-2">
+                  {saving ? (
+                    <Loader2 className="animate-spin w-4 h-4 mr-1" />
+                  ) : saved ? (
+                    <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
+                  ) : null}
+                  {saving ? "Saving..." : saved ? "Saved" : ""}
+                </span>
               )}
             </div>
           </CardHeader>
@@ -188,17 +217,14 @@ export default function ProgramModal({ programId, open, onOpenChange, onEdit, or
                   )}
                 </div>
               </div>
-              <div className="flex justify-end gap-2 mt-6">
-                {editMode ? (
-                  <Button variant="ghost" onClick={handleCancel}>Cancel</Button>
-                ) : (
-                  <Button onClick={handleEdit}>Edit</Button>
-                )}
-              </div>
+              {/* Removed bottom Edit/Cancel button row for cleaner UI. */}
             </form>
           </CardContent>
         </Card>
       </DialogContent>
     </Dialog>
+}
+
+export default ProgramModal;
   )
 }
