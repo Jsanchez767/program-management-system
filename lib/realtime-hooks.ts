@@ -118,7 +118,7 @@ export function useRealtimePrograms(organizationId: string) {
         {
           event: '*', // INSERT, UPDATE, DELETE
           schema: 'public',
-          table: 'programs',
+          table: 'activities',
           filter: `organization_id=eq.${organizationId}`
         },
         (payload) => {
