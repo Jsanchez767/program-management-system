@@ -1,14 +1,12 @@
+
 "use client"
-const debounceRef = useRef<NodeJS.Timeout | null>(null);
-import { Button } from "@/components/ui/button"
 import { useEffect, useState, useRef } from "react"
+import { Button } from "@/components/ui/button"
 import { CheckCircle, Loader2, AlertCircle } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { useRealtimePrograms } from "@/lib/realtime-hooks"
+
 type ProgramModalProps = {
   programId: string,
   open: boolean,
@@ -17,25 +15,28 @@ type ProgramModalProps = {
   organizationId: string
 }
 
-function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organizationId }: ProgramModalProps) {
+export default function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organizationId }: ProgramModalProps) {
+  // Defensive: Only run hooks inside the function
   const [program, setProgram] = useState<any>(null)
   const programs = useRealtimePrograms(organizationId)
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState<any>(null)
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState(null);
-  // Remove duplicate declaration, keep only one debounceRef
-  const inputBuffer = useRef({});
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const inputBuffer = useRef<any>({})
 
+  // Defensive: Only update state if programs and programId are valid
   useEffect(() => {
-    if (programs && programId) {
+    if (Array.isArray(programs) && programId) {
       const found = programs.find((p: any) => p.id === programId)
-      setProgram(found)
-      setForm(found)
+      setProgram(found || null)
+      setForm(found || null)
     }
   }, [programs, programId])
 
+  // Defensive: Don't render modal if program is missing
   if (!program) {
     return (
       <div className="p-6 text-center">
@@ -44,60 +45,47 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
         <div className="text-muted-foreground mb-4">The selected program could not be found or loaded.</div>
         <button className="mt-4 px-4 py-2 bg-gray-200 rounded" onClick={() => onOpenChange(false)}>Close</button>
       </div>
-    );
+    )
   }
 
-  const handleEdit = () => {
-    setEditMode(true)
-  }
-
-  const handleCancel = () => {
-    setEditMode(false)
-    setForm(program)
-  }
-
-  // Debounce save logic
-  // Already declared above, remove this line
-  const lastFieldRef = useRef<string>("")
-  const lastValueRef = useRef<any>("")
-
+  // Debounced save logic
   const saveField = async (field: string, value: any) => {
     setSaving(true)
     setSaved(false)
     try {
       await fetch(`/api/programs/${programId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: value }),
       })
-      setSaving(false)
       setSaved(true)
       setTimeout(() => setSaved(false), 1200)
     } catch (err) {
+      setError('Failed to save')
+      if (typeof window !== "undefined") {
+        window.console.error('Failed to save', err)
+      }
+    } finally {
       setSaving(false)
-      console.error('Failed to save', err)
     }
   }
 
+  // Defensive: Only update form and save if form is valid
   const handleChange = (field: string, value: any) => {
-  setForm((prev: any) => ({ ...prev, [field]: value }));
-    setError(null);
-    inputBuffer.current = { ...form, [field]: value };
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!form) return
+    setForm((prev: any) => ({ ...prev, [field]: value }))
+    setError(null)
+    inputBuffer.current = { ...form, [field]: value }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      saveField(field, value);
-    }, 400);
-  if (!form) {
-    return (
-      <div className="p-6 text-center">
-        <AlertCircle className="mx-auto mb-2 text-red-500" size={32} />
-        <div>Unable to load program details.</div>
-        <button className="mt-4 px-4 py-2 bg-gray-200 rounded" onClick={() => onOpenChange(false)}>Close</button>
-      </div>
-    );
+      saveField(field, value)
+    }, 400)
   }
+
+  const handleEdit = () => setEditMode(true)
+  const handleCancel = () => {
+    setEditMode(false)
+    setForm(program)
   }
 
   return (
@@ -120,6 +108,7 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
                     <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
                   ) : null}
                   {saving ? "Saving..." : saved ? "Saved" : ""}
+                  {error && <span className="text-red-500 ml-2">{error}</span>}
                 </span>
               )}
             </div>
@@ -246,13 +235,10 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
                   )}
                 </div>
               </div>
-              {/* Removed bottom Edit/Cancel button row for cleaner UI. */}
             </form>
           </CardContent>
         </Card>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
-
-export default ProgramModal;
