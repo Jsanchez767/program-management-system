@@ -1,5 +1,8 @@
 "use client"
-// Debounce ref for input reliability
+// Defensive: Only define hooks if required props are present
+if (!programId) {
+  return null;
+}
 const debounceRef = useRef<NodeJS.Timeout | null>(null);
 import { Button } from "@/components/ui/button"
 import { useEffect, useState, useRef } from "react"
@@ -37,7 +40,16 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
     }
   }, [programs, programId])
 
-  if (!program) return null
+  if (!program) {
+    return (
+      <div className="p-6 text-center">
+        <AlertCircle className="mx-auto mb-2 text-red-500" size={32} />
+        <div className="text-lg font-semibold mb-2">Unable to load program details.</div>
+        <div className="text-muted-foreground mb-4">The selected program could not be found or loaded.</div>
+        <button className="mt-4 px-4 py-2 bg-gray-200 rounded" onClick={() => onOpenChange(false)}>Close</button>
+      </div>
+    );
+  }
 
   const handleEdit = () => {
     setEditMode(true)
