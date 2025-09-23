@@ -1,8 +1,4 @@
 "use client"
-// Defensive: Only define hooks if required props are present
-if (!programId) {
-  return null;
-}
 const debounceRef = useRef<NodeJS.Timeout | null>(null);
 import { Button } from "@/components/ui/button"
 import { useEffect, useState, useRef } from "react"
