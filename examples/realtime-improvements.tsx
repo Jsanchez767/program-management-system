@@ -126,7 +126,7 @@ export function CustomFieldAnalytics() {
 // ===========================================
 
 export function ProgramCapacityMonitor() {
-  const programs = useRealtimePrograms(organizationId)
+  const programs = useRealtimeActivities(organizationId)
   const [alerts, setAlerts] = useState([])
   
   // Monitor capacity in real-time
@@ -144,8 +144,8 @@ export function ProgramCapacityMonitor() {
     <div className="capacity-monitor">
       {alerts.map(program => (
         <Alert key={activity.id} type="warning">
-          ⚠️ {program.name} is at {Math.round(
-            (program.participants.length / program.custom_fields.max_participants) * 100
+          ⚠️ {activity.name} is at {Math.round(
+            (activity.participants.length / activity.custom_fields.max_participants) * 100
           )}% capacity
           <Button onClick={() => openNewSection(activity.id)}>
             Open New Section

@@ -5,7 +5,7 @@ import { useUser } from '@/shared/hooks/use-user'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
-import { useRealtimeDashboard, useRealtimePrograms, useRealtimeEnrollments } from '@/lib/realtime-hooks'
+import { useRealtimeDashboard, useRealtimeActivities, useRealtimeEnrollments } from '@/lib/realtime-hooks'
 import { createClient } from '@/lib/supabase/client'
 
 const supabase = createClient()
@@ -23,7 +23,7 @@ export function RealtimeDashboard() {
 
 function DashboardContent({ organizationId }: { organizationId: string }) {
   // Use our realtime hooks
-  const programs = useRealtimePrograms(organizationId)
+  const programs = useRealtimeActivities(organizationId)
   const { enrollments, newEnrollmentNotification } = useRealtimeEnrollments(organizationId)
 
   // Calculate live stats from programs and enrollments
@@ -34,7 +34,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
   const todayEnrollments = enrollments.filter(e => e.created_at?.slice(0, 10) === today).length
   const weekEnrollments = enrollments.filter(e => new Date(e.created_at) >= weekAgo).length
   const monthEnrollments = enrollments.filter(e => new Date(e.created_at) >= monthAgo).length
-  const activePrograms = programs.filter(
+  const activeActivities = programs.filter(
     p => (p.status ?? 'active').toLowerCase() === 'active'
   ).length
 
@@ -53,7 +53,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
       })
 
     if (error) {
-      console.error('Error creating program:', error)
+      console.error('Error creating activity:', error)
     }
   }
 
@@ -115,7 +115,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
             <Badge variant="outline" className="text-xs">Live</Badge>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activePrograms}</div>
+            <div className="text-2xl font-bold">{activeActivities}</div>
           </CardContent>
         </Card>
       </div>
@@ -133,22 +133,22 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {programs.length === 0 ? (
+            {activities.length === 0 ? (
               <p className="text-muted-foreground">No programs found.</p>
             ) : (
-              programs.map((program) => (
+              activities.map((program) => (
                 <div key={activity.id} className="flex items-center justify-between p-3 border rounded">
                   <div>
-                    <h4 className="font-medium">{program.name}</h4>
-                    <p className="text-sm text-muted-foreground">{program.description}</p>
-                    {program.custom_fields?.difficulty_level && (
+                    <h4 className="font-medium">{activity.name}</h4>
+                    <p className="text-sm text-muted-foreground">{activity.description}</p>
+                    {activity.custom_fields?.difficulty_level && (
                       <Badge variant="secondary" className="mt-1">
-                        {program.custom_fields.difficulty_level}
+                        {activity.custom_fields.difficulty_level}
                       </Badge>
                     )}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {new Date(program.created_at).toLocaleDateString()}
+                    {new Date(activity.created_at).toLocaleDateString()}
                   </div>
                 </div>
               ))

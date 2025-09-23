@@ -41,6 +41,6 @@ export interface ProgramModalProps {
   activityId: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  onOptimisticUpdate?: (program: Partial<Program>) => void
+  onOptimisticUpdate?: (activity: Partial<Program>) => void
   organizationId: string
 }

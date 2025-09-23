@@ -30,7 +30,7 @@ export default function ReviewDocumentPage() {
           .select(`
             *,
             student:profiles!documents_participant_id_fkey(first_name, last_name, email),
-            program:programs(name),
+            activity:programs(name),
             reviewer:profiles!documents_reviewed_by_fkey(first_name, last_name)
           `)
           .eq("id", params.id)
@@ -221,7 +221,7 @@ export default function ReviewDocumentPage() {
                           <BookOpen className="mr-2 h-4 w-4 text-muted-foreground" />
                           <div>
                             <p className="font-medium">Program</p>
-                            <p className="text-muted-foreground">{document.program.name}</p>
+                            <p className="text-muted-foreground">{document.activity.name}</p>
                           </div>
                         </div>
                       )}

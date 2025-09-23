@@ -177,7 +177,7 @@ export default function NewProgramPage() {
             throw rpcError;
           } else {
             console.log('RPC insert succeeded!');
-            router.push("/admin/programs");
+            router.push("/admin/activities");
             return;
           }
         }
@@ -186,7 +186,7 @@ export default function NewProgramPage() {
       }
 
       console.log('Program created successfully!');
-      router.push("/admin/programs")
+      router.push("/admin/activities")
     } catch (error: any) {
       setError(error.message)
     } finally {
@@ -207,13 +207,13 @@ export default function NewProgramPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Button variant="outline" size="icon" asChild>
-              <Link href="/admin/programs">
+              <Link href="/admin/activities">
                 <span>←</span>
               </Link>
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-foreground">Create New Program</h1>
-              <p className="text-muted-foreground mt-2">Add a new educational program to the system</p>
+              <p className="text-muted-foreground mt-2">Add a new educational activity to the system</p>
             </div>
           </div>
 
@@ -335,7 +335,7 @@ export default function NewProgramPage() {
                     {isLoading ? "Creating..." : "Create Program"}
                   </Button>
                   <Button type="button" variant="outline" asChild>
-                    <Link href="/admin/programs">Cancel</Link>
+                    <Link href="/admin/activities">Cancel</Link>
                   </Button>
                 </div>
               </form>

@@ -12,16 +12,16 @@ const mockProfile = {
 }
 
 const mockStats = {
-  myPrograms: 3,
+  myActivities: 3,
   totalLessonPlans: 15,
   pendingPOs: 2,
   approvedFieldTrips: 1,
 }
 
 const mockUpcomingLessons = [
-  { title: "Introduction to Algebra", program: { name: "Math Fundamentals" }, lesson_date: "2024-01-22" },
-  { title: "Creative Writing Workshop", program: { name: "English Literature" }, lesson_date: "2024-01-24" },
-  { title: "Science Lab: Chemistry", program: { name: "STEM Basics" }, lesson_date: "2024-01-26" },
+  { title: "Introduction to Algebra", activity: { name: "Math Fundamentals" }, lesson_date: "2024-01-22" },
+  { title: "Creative Writing Workshop", activity: { name: "English Literature" }, lesson_date: "2024-01-24" },
+  { title: "Science Lab: Chemistry", activity: { name: "STEM Basics" }, lesson_date: "2024-01-26" },
 ]
 
 const mockRecentLessonPlans = [
@@ -42,15 +42,15 @@ export default function InstructorDashboard() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Welcome back, {mockProfile.first_name}!</h1>
-            <p className="text-muted-foreground mt-2">Here's an overview of your programs and activities.</p>
+            <p className="text-muted-foreground mt-2">Here's an overview of your activities and activities.</p>
           </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatsCard
-              title="My Programs"
-              value={mockStats.myPrograms}
-              description="Programs you're teaching"
+              title="My Activities"
+              value={mockStats.myActivities}
+              description="Activities you're teaching"
               icon={BookOpen}
             />
             <StatsCard
@@ -117,7 +117,7 @@ export default function InstructorDashboard() {
                   {mockUpcomingLessons.map((lesson, index) => (
                     <div key={index} className="p-3 border border-border rounded-lg">
                       <h4 className="font-medium text-sm">{lesson.title}</h4>
-                      <p className="text-xs text-muted-foreground">{lesson.program.name}</p>
+                      <p className="text-xs text-muted-foreground">{lesson.activity.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(lesson.lesson_date).toLocaleDateString()}
                       </p>

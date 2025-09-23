@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Program } from '../types/program.types'
+import { Program } from '../types/activity.types'
 
 const supabase = createClient()
 
 export function usePrograms(organizationId: string) {
-  const [programs, setPrograms] = useState<Program[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -17,7 +17,7 @@ export function usePrograms(organizationId: string) {
 
     let isMounted = true
 
-    const loadPrograms = async () => {
+    const loadActivities = async () => {
       try {
         const { data, error: fetchError } = await supabase
           .from('activities')
@@ -35,7 +35,7 @@ export function usePrograms(organizationId: string) {
         if (fetchError) throw fetchError
 
         if (isMounted) {
-          setPrograms(data || [])
+          setActivities(data || [])
           setError(null)
         }
       } catch (err) {
@@ -64,19 +64,19 @@ export function usePrograms(organizationId: string) {
           if (!isMounted) return
 
           if (payload.eventType === 'INSERT') {
-            setPrograms(prev => [...prev, payload.new as Program])
+            setActivities(prev => [...prev, payload.new as Program])
           } else if (payload.eventType === 'UPDATE') {
-            setPrograms(prev => 
+            setActivities(prev => 
               prev.map(p => p.id === payload.new.id ? { ...p, ...payload.new } : p)
             )
           } else if (payload.eventType === 'DELETE') {
-            setPrograms(prev => prev.filter(p => p.id !== payload.old.id))
+            setActivities(prev => prev.filter(p => p.id !== payload.old.id))
           }
         }
       )
       .subscribe()
 
-    loadPrograms()
+    loadActivities()
 
     return () => {
       isMounted = false
@@ -87,8 +87,8 @@ export function usePrograms(organizationId: string) {
   return { programs, loading, error, setPrograms }
 }
 
-export function useProgramActions(organizationId: string) {
-  const createProgram = async (programData: Omit<Program, 'id' | 'created_at' | 'updated_at'>) => {
+export function useActivityActions(organizationId: string) {
+  const createActivity = async (programData: Omit<Program, 'id' | 'created_at' | 'updated_at'>) => {
     const { data, error } = await supabase
       .from('activities')
       .insert({ ...programData, organization_id: organizationId })
@@ -99,7 +99,7 @@ export function useProgramActions(organizationId: string) {
     return data
   }
 
-  const updateProgram = async (id: string, updates: Partial<Program>) => {
+  const updateActivity = async (id: string, updates: Partial<Program>) => {
     const { data, error } = await supabase
       .from('activities')
       .update(updates)
@@ -112,7 +112,7 @@ export function useProgramActions(organizationId: string) {
     return data
   }
 
-  const deleteProgram = async (id: string) => {
+  const deleteActivity = async (id: string) => {
     const { error } = await supabase
       .from('activities')
       .delete()
@@ -122,5 +122,5 @@ export function useProgramActions(organizationId: string) {
     if (error) throw error
   }
 
-  return { createProgram, updateProgram, deleteProgram }
+  return { createActivity, updateActivity, deleteActivity }
 }

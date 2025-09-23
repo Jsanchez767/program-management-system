@@ -13,15 +13,15 @@ const mockProfile = {
 }
 
 const mockStats = {
-  enrolledPrograms: 2,
+  enrolledActivities: 2,
   pendingDocuments: 1,
   unreadAnnouncements: 3,
   missingDocuments: 2,
 }
 
-const mockPrograms = [
+const mockActivities = [
   {
-    program: {
+    activity: {
       id: 1,
       name: "Summer STEM Camp",
       description:
@@ -32,7 +32,7 @@ const mockPrograms = [
     },
   },
   {
-    program: {
+    activity: {
       id: 2,
       name: "Creative Writing Workshop",
       description: "Develop your writing skills through creative exercises, peer review, and professional guidance.",
@@ -51,7 +51,7 @@ const mockAnnouncements = [
       "Join us for an exciting field trip to the local science museum next Friday. Permission slips are required.",
     priority: "high",
     published_at: "2024-01-18",
-    program: { name: "Summer STEM Camp" },
+    activity: { name: "Summer STEM Camp" },
   },
   {
     id: 2,
@@ -59,7 +59,7 @@ const mockAnnouncements = [
     content: "Don't forget to submit your creative writing pieces for our annual contest by January 25th.",
     priority: "medium",
     published_at: "2024-01-17",
-    program: { name: "Creative Writing Workshop" },
+    activity: { name: "Creative Writing Workshop" },
   },
   {
     id: 3,
@@ -67,7 +67,7 @@ const mockAnnouncements = [
     content: "Please note that next week's sessions will start 30 minutes later due to facility maintenance.",
     priority: "urgent",
     published_at: "2024-01-16",
-    program: null,
+    activity: null,
   },
 ]
 
@@ -105,8 +105,8 @@ export default function StudentDashboard() {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatsCard
-              title="Enrolled Programs"
-              value={mockStats.enrolledPrograms}
+              title="Enrolled Activities"
+              value={mockStats.enrolledActivities}
               description="Active enrollments"
               icon={BookOpen}
             />
@@ -159,39 +159,39 @@ export default function StudentDashboard() {
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* My Programs */}
+            {/* My Activities */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <BookOpen className="mr-2 h-5 w-5" />
-                  My Programs
+                  My Activities
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockPrograms.map((enrollment, index) => (
+                  {mockActivities.map((enrollment, index) => (
                     <div key={index} className="p-4 border border-border rounded-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium">{enrollment.program.name}</h4>
+                          <h4 className="font-medium">{enrollment.activity.name}</h4>
                           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                            {enrollment.program.description}
+                            {enrollment.activity.description}
                           </p>
                           <div className="flex items-center mt-2 text-sm text-muted-foreground">
                             <Calendar className="mr-1 h-3 w-3" />
-                            {new Date(enrollment.program.start_date).toLocaleDateString()}
-                            {enrollment.program.end_date &&
-                              ` - ${new Date(enrollment.program.end_date).toLocaleDateString()}`}
+                            {new Date(enrollment.activity.start_date).toLocaleDateString()}
+                            {enrollment.activity.end_date &&
+                              ` - ${new Date(enrollment.activity.end_date).toLocaleDateString()}`}
                           </div>
                         </div>
                         <Badge
                           className={
-                            enrollment.program.status === "active"
+                            enrollment.activity.status === "active"
                               ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                               : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
                           }
                         >
-                          {enrollment.program.status}
+                          {enrollment.activity.status}
                         </Badge>
                       </div>
                     </div>
@@ -199,7 +199,7 @@ export default function StudentDashboard() {
                 </div>
                 <div className="mt-4">
                   <Button variant="outline" asChild className="w-full bg-transparent">
-                    <Link href="/student/programs">View All Programs</Link>
+                    <Link href="/participant/activities">View All Programs</Link>
                   </Button>
                 </div>
               </CardContent>
@@ -227,7 +227,7 @@ export default function StudentDashboard() {
                           {new Date(announcement.published_at).toLocaleDateString()}
                         </p>
                         {announcement.program && (
-                          <p className="text-xs text-muted-foreground">{announcement.program.name}</p>
+                          <p className="text-xs text-muted-foreground">{announcement.activity.name}</p>
                         )}
                       </div>
                     </div>

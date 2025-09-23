@@ -68,7 +68,7 @@ export interface Activity {
 // Legacy alias for backward compatibility
 export type Program = Activity
 
-export interface ProgramParticipant {
+export interface ActivityParticipant {
   id: string
   activity_id: string
   participant_id: string
@@ -193,7 +193,7 @@ export interface ActivityWithInstructor extends Activity {
 }
 
 export interface ActivityWithParticipants extends Activity {
-  participants?: (ProgramParticipant & { student_metadata: UserMetadata })[]
+  participants?: (ActivityParticipant & { student_metadata: UserMetadata })[]
 }
 
 export interface AnnouncementWithAuthor extends Announcement {
@@ -220,15 +220,15 @@ export interface FieldTripWithProgram extends FieldTrip {
   approved_by_metadata?: UserMetadata
 }
 
-export interface ParticipantWithDetails extends ProgramParticipant {
+export interface ParticipantWithDetails extends ActivityParticipant {
   student_metadata: UserMetadata
   activity: Activity
 }
 
 // Dashboard stats types
 export interface DashboardStats {
-  totalPrograms: number
-  activePrograms: number
+  totalActivities: number
+  activeActivities: number
   totalParticipants: number
   totalInstructors: number
   totalStudents: number

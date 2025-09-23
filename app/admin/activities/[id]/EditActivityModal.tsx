@@ -4,13 +4,13 @@ import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/ui/button"
-import { useRealtimePrograms } from "@/lib/realtime-hooks"
+import { useRealtimeActivities } from "@/lib/realtime-hooks"
 import { createClient } from "@/lib/supabase/client"
 
 export default function EditProgramModal({ activityId, open, onOpenChange }: { activityId: string, open: boolean, onOpenChange: (open: boolean) => void }) {
   const [program, setProgram] = useState<any>(null)
   const [form, setForm] = useState<any>({})
-  const programs = useRealtimePrograms("") // You may want to pass organizationId here
+  const programs = useRealtimeActivities("") // You may want to pass organizationId here
 
   useEffect(() => {
     if (programs && activityId) {
@@ -50,7 +50,7 @@ export default function EditProgramModal({ activityId, open, onOpenChange }: { a
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Program: {program.name}</DialogTitle>
+          <DialogTitle>Edit Program: {activity.name}</DialogTitle>
           <DialogDescription>Update program details in real-time.</DialogDescription>
         </DialogHeader>
         <div className="mt-4 space-y-2">

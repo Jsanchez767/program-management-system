@@ -1,25 +1,25 @@
 "use client"
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
-import EditProgramModal from "./[id]/EditProgramModal"
+import EditActivityModal from "./[id]/EditActivityModal"
 
 import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import Link from "next/link"
-import { useRealtimePrograms } from "@/lib/realtime-hooks"
+import { useRealtimeActivities } from "@/lib/realtime-hooks"
 import { useUser } from "@/shared/hooks/use-user"
 import { useEffect, useState } from "react"
-import ProgramModal from "./[id]/ProgramModal"
+import ActivityModal from "./[id]/ActivityModal"
 
 // Force dynamic rendering
 
-export default function AdminProgramsPage() {
+export default function AdminActivitiesPage() {
   const { user } = useUser()
   const organizationId = user?.user_metadata?.organization_id
-  const realtimePrograms = useRealtimePrograms(organizationId || "")
-  const [programs, setPrograms] = useState<any[]>([])
+  const realtimeActivities = useRealtimeActivities(organizationId || "")
+  const [activities, setActivities] = useState<any[]>([])
   const [hasDataLoaded, setHasDataLoaded] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [showPlaceholder, setShowPlaceholder] = useState(false)
@@ -32,7 +32,7 @@ export default function AdminProgramsPage() {
 
   // Delayed placeholder - only show after 3 seconds if no programs and data has loaded
   useEffect(() => {
-    if (hasDataLoaded && isMounted && programs.length === 0) {
+    if (hasDataLoaded && isMounted && activities.length === 0) {
       const timer = setTimeout(() => {
         setShowPlaceholder(true)
       }, 3000) // 3 second delay
@@ -41,15 +41,15 @@ export default function AdminProgramsPage() {
     } else {
       setShowPlaceholder(false)
     }
-  }, [hasDataLoaded, isMounted, programs.length])
+  }, [hasDataLoaded, isMounted, activities.length])
 
-  // Sync local programs state with realtime updates
+  // Sync local activities state with realtime updates
   useEffect(() => {
-    if (organizationId && realtimePrograms !== undefined) {
-      setPrograms(realtimePrograms || [])
+    if (organizationId && realtimeActivities !== undefined) {
+      setActivities(realtimeActivities || [])
       setHasDataLoaded(true)
     }
-  }, [realtimePrograms, organizationId])
+  }, [realtimeActivities, organizationId])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -65,9 +65,9 @@ export default function AdminProgramsPage() {
   }
 
   const [modalOpen, setModalOpen] = useState(false)
-  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null)
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editProgramId, setEditProgramId] = useState<string | null>(null)
+  const [editActivityId, setEditActivityId] = useState<string | null>(null)
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,7 +89,7 @@ export default function AdminProgramsPage() {
             </Button>
           </div>
 
-          {/* Programs Grid */}
+          {/* Activities Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {isLoading ? (
               [...Array(6)].map((_, i) => (
@@ -99,35 +99,35 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               ))
-            ) : programs.length > 0 ? (
-              programs.map((program: any) => (
-                <Card key={program.id} className="hover:shadow-md transition-shadow">
+            ) : activities.length > 0 ? (
+              activities.map((activity: any) => (
+                <Card key={activity.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg">{program.name}</CardTitle>
-                      <Badge className={getStatusColor(program.status)}>{program.status}</Badge>
+                      <CardTitle className="text-lg">{activity.name}</CardTitle>
+                      <Badge className={getStatusColor(activity.status)}>{activity.status}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground line-clamp-2">
-                      {program.description || "No description provided"}
+                      {activity.description || "No description provided"}
                     </p>
                     <div className="space-y-2">
-                      {program.staff && (
+                      {activity.staff && (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <span className="mr-2">👤</span>
-                          {program.staff.first_name} {program.staff.last_name}
+                          {activity.staff.first_name} {activity.staff.last_name}
                         </div>
                       )}
                       <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-2">👥</span>
-                        {program.current_participants || 0} / {program.max_participants || "Unlimited"} participants
+                        {activity.current_participants || 0} / {activity.max_participants || "Unlimited"} participants
                       </div>
-                      {program.start_date && (
+                      {activity.start_date && (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <span className="mr-2">📅</span>
-                          {new Date(program.start_date).toLocaleDateString()}
-                          {program.end_date && ` - ${new Date(program.end_date).toLocaleDateString()}`}
+                          {new Date(activity.start_date).toLocaleDateString()}
+                          {activity.end_date && ` - ${new Date(activity.end_date).toLocaleDateString()}`}
                         </div>
                       )}
                     </div>
@@ -137,7 +137,7 @@ export default function AdminProgramsPage() {
                         size="sm"
                         className="flex-1 bg-transparent"
                         onClick={() => {
-                          setSelectedProgramId(program.id)
+                          setSelectedActivityId(activity.id)
                           setModalOpen(true)
                         }}
                       >
@@ -155,14 +155,14 @@ export default function AdminProgramsPage() {
                       <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
                         <span className="text-4xl">📚</span>
                       </div>
-                      <h3 className="text-lg font-medium text-foreground mb-2">No programs yet</h3>
+                      <h3 className="text-lg font-medium text-foreground mb-2">No activities yet</h3>
                       <p className="text-muted-foreground mb-6">
-                        Get started by creating your first educational program.
+                        Get started by creating your first educational activity.
                       </p>
                       <Button asChild>
-                        <Link href="/admin/programs/new">
+                        <Link href="/admin/activities/new">
                           <span className="mr-2">➕</span>
-                          Create Program
+                          Create Activity
                         </Link>
                       </Button>
                     </div>
@@ -171,29 +171,29 @@ export default function AdminProgramsPage() {
               </div>
             ) : null}
           </div>
-          {/* Program Details Modal */}
-          {selectedProgramId && (
-            <ProgramModal
-              activityId={selectedProgramId}
+          {/* Activity Details Modal */}
+          {selectedActivityId && (
+            <ActivityModal
+              activityId={selectedActivityId}
               open={modalOpen}
               onOpenChange={(open) => {
                 setModalOpen(open)
-                if (!open) setSelectedProgramId(null)
+                if (!open) setSelectedActivityId(null)
               }}
-              onOptimisticUpdate={(updatedProgram) => {
-                setPrograms((prev) => prev.map(p => p.id === updatedProgram.id ? { ...p, ...updatedProgram } : p))
+              onOptimisticUpdate={(updatedActivity) => {
+                setActivities((prev) => prev.map(p => p.id === updatedActivity.id ? { ...p, ...updatedActivity } : p))
               }}
               organizationId={organizationId || ""}
             />
           )}
-          {/* Edit Program Modal */}
-          {editProgramId && (
-            <EditProgramModal
-              activityId={editProgramId}
+          {/* Edit Activity Modal */}
+          {editActivityId && (
+            <EditActivityModal
+              activityId={editActivityId}
               open={editModalOpen}
               onOpenChange={(open) => {
                 setEditModalOpen(open)
-                if (!open) setEditProgramId(null)
+                if (!open) setEditActivityId(null)
               }}
             />
           )}

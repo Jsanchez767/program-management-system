@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Program, ProgramParticipant, Announcement, Document, LessonPlan, PurchaseOrder, FieldTrip } from '@/lib/types/database'
+import type { Program, ActivityParticipant, Announcement, Document, LessonPlan, PurchaseOrder, FieldTrip } from '@/lib/types/database'
 
 // Updated Database type without profiles table
 type Database = {
@@ -16,15 +16,15 @@ type Database = {
           updated_at: string
         }
       }
-      programs: {
+      activities: {
         Row: Program
         Insert: Omit<Program, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Program, 'id' | 'created_at'>>
       }
       program_participants: {
-        Row: ProgramParticipant
-        Insert: Omit<ProgramParticipant, 'id' | 'enrolled_at' | 'updated_at'>
-        Update: Partial<Omit<ProgramParticipant, 'id' | 'enrolled_at'>>
+        Row: ActivityParticipant
+        Insert: Omit<ActivityParticipant, 'id' | 'enrolled_at' | 'updated_at'>
+        Update: Partial<Omit<ActivityParticipant, 'id' | 'enrolled_at'>>
       }
       announcements: {
         Row: Announcement
@@ -142,7 +142,7 @@ export async function getInstructorsByOrganization(organizationId: string): Prom
 // PROGRAM OPERATIONS
 // =============================================================================
 
-export async function getPrograms(): Promise<Program[]> {
+export async function getPrograms(): Promise<Activity[]> {
   const supabase = createClient()
   
   try {
@@ -155,7 +155,7 @@ export async function getPrograms(): Promise<Program[]> {
 
     return programs || []
   } catch (error) {
-    console.error('Error fetching programs:', error)
+    console.error('Error fetching activities:', error)
     return []
   }
 }
@@ -174,7 +174,7 @@ export async function getProgramById(id: string): Promise<Program | null> {
 
     return program || null
   } catch (error) {
-    console.error('Error fetching program:', error)
+    console.error('Error fetching activity:', error)
     return null
   }
 }
@@ -183,7 +183,7 @@ export async function getProgramById(id: string): Promise<Program | null> {
 // PROGRAM PARTICIPANTS OPERATIONS
 // =============================================================================
 
-export async function getProgramParticipants(activityId: string): Promise<ProgramParticipant[]> {
+export async function getActivityParticipants(activityId: string): Promise<ActivityParticipant[]> {
   const supabase = createClient()
   
   try {
@@ -402,7 +402,7 @@ export async function getAnalytics() {
     if (error) {
       console.error('Error fetching analytics:', error)
       return {
-        totalPrograms: 0,
+        totalActivities: 0,
         totalParticipants: 0,
         totalInstructors: 0,
         totalStudents: 0
@@ -410,7 +410,7 @@ export async function getAnalytics() {
     }
 
     return analytics || {
-      totalPrograms: 0,
+      totalActivities: 0,
       totalParticipants: 0,
       totalInstructors: 0,
       totalStudents: 0
@@ -418,7 +418,7 @@ export async function getAnalytics() {
   } catch (error) {
     console.error('Error fetching analytics:', error)
     return {
-      totalPrograms: 0,
+      totalActivities: 0,
       totalParticipants: 0,
       totalInstructors: 0,
       totalStudents: 0

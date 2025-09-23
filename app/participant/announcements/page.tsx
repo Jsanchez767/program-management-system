@@ -11,7 +11,7 @@ const mockAnnouncements = [
     priority: "high",
     published_at: "2024-01-15T10:00:00Z",
     author: { first_name: "Dr. Sarah", last_name: "Johnson" },
-    program: { name: "Advanced Mathematics" },
+    activity: { name: "Advanced Mathematics" },
     expires_at: "2024-02-15T23:59:59Z",
   },
   {
@@ -22,7 +22,7 @@ const mockAnnouncements = [
     priority: "urgent",
     published_at: "2024-01-18T14:30:00Z",
     author: { first_name: "Prof. Michael", last_name: "Chen" },
-    program: { name: "Science Laboratory" },
+    activity: { name: "Science Laboratory" },
   },
   {
     id: "3",
@@ -84,7 +84,7 @@ export default function StudentAnnouncementsPage() {
                           {announcement.program && (
                             <div className="flex items-center">
                               <span className="mr-1">📚</span>
-                              {announcement.program.name}
+                              {announcement.activity.name}
                             </div>
                           )}
                         </div>

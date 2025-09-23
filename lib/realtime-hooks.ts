@@ -11,7 +11,7 @@ interface DashboardStats {
   todayEnrollments: number
   weekEnrollments: number
   monthEnrollments: number
-  activePrograms: number
+  activeActivities: number
 }
 
 interface Program {
@@ -54,7 +54,7 @@ export function useRealtimeDashboard(organizationId: string) {
     todayEnrollments: 0,
     weekEnrollments: 0,
     monthEnrollments: 0,
-    activePrograms: 0
+    activeActivities: 0
   })
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export function useRealtimeDashboard(organizationId: string) {
         todayEnrollments: data.today_enrollments,
         weekEnrollments: data.week_enrollments,
         monthEnrollments: data.month_enrollments,
-        activePrograms: data.active_programs
+        activeActivities: data.active_programs
       })
     }
   }
@@ -106,8 +106,8 @@ export function useRealtimeDashboard(organizationId: string) {
 }
 
 // Real-time program updates
-export function useRealtimePrograms(organizationId: string) {
-  const [programs, setPrograms] = useState<Program[]>([])
+export function useRealtimeActivities(organizationId: string) {
+  const [activities, setActivities] = useState<Activity[]>([])
 
   useEffect(() => {
     // Subscribe to program changes
@@ -125,13 +125,13 @@ export function useRealtimePrograms(organizationId: string) {
           console.log('Program update:', payload)
           
           if (payload.eventType === 'INSERT') {
-            setPrograms(prev => [...prev, payload.new as Program])
+            setActivities(prev => [...prev, payload.new as Program])
           } else if (payload.eventType === 'UPDATE') {
-            setPrograms(prev => 
+            setActivities(prev => 
               prev.map(p => p.id === payload.new.id ? payload.new as Program : p)
             )
           } else if (payload.eventType === 'DELETE') {
-            setPrograms(prev => 
+            setActivities(prev => 
               prev.filter(p => p.id !== payload.old.id)
             )
           }
@@ -140,20 +140,20 @@ export function useRealtimePrograms(organizationId: string) {
       .subscribe()
 
     // Initial load
-    loadPrograms()
+    loadActivities()
 
     return () => {
       supabase.removeChannel(channel)
     }
   }, [organizationId])
 
-  const loadPrograms = async () => {
+  const loadActivities = async () => {
     const { data } = await supabase
       .from('activities')
       .select('*')
       .eq('organization_id', organizationId)
 
-    if (data) setPrograms(data)
+    if (data) setActivities(data)
   }
 
   return programs
@@ -257,7 +257,7 @@ function AdminDashboard() {
   const stats = useRealtimeDashboard(organizationId)
   
   // Real-time programs
-  const programs = useRealtimePrograms(organizationId)
+  const programs = useRealtimeActivities(organizationId)
   
   // Real-time enrollments with notifications
   const { enrollments, newEnrollmentNotification } = useRealtimeEnrollments(organizationId)
@@ -274,7 +274,7 @@ function AdminDashboard() {
         <StatCard title="Today's Enrollments" value={stats.todayEnrollments} />
         <StatCard title="This Week" value={stats.weekEnrollments} />
         <StatCard title="This Month" value={stats.monthEnrollments} />
-        <StatCard title="Active Programs" value={stats.activePrograms} />
+        <StatCard title="Active Programs" value={stats.activeActivities} />
       </div>
       
       <ProgramsList programs={programs} />

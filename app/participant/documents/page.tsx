@@ -10,7 +10,7 @@ const mockDocuments = [
     name: "Medical Form - John Doe",
     document_type: "medical_form",
     status: "approved",
-    program: { name: "Advanced Mathematics" },
+    activity: { name: "Advanced Mathematics" },
     created_at: "2024-01-10T10:00:00Z",
     reviewed_at: "2024-01-12T14:30:00Z",
     reviewer: { first_name: "Dr. Sarah", last_name: "Johnson" },
@@ -20,7 +20,7 @@ const mockDocuments = [
     name: "Emergency Contact Information",
     document_type: "emergency_contact",
     status: "pending",
-    program: { name: "Science Laboratory" },
+    activity: { name: "Science Laboratory" },
     created_at: "2024-01-15T09:15:00Z",
   },
   {
@@ -28,7 +28,7 @@ const mockDocuments = [
     name: "Photo Release Form",
     document_type: "photo_release",
     status: "rejected",
-    program: { name: "Creative Arts" },
+    activity: { name: "Creative Arts" },
     created_at: "2024-01-18T11:30:00Z",
     notes: "Form is incomplete. Please fill out all required fields and resubmit.",
   },
@@ -37,7 +37,7 @@ const mockDocuments = [
     name: "Insurance Information",
     document_type: "insurance_info",
     status: "missing",
-    program: { name: "Advanced Mathematics" },
+    activity: { name: "Advanced Mathematics" },
   },
 ]
 
@@ -124,7 +124,7 @@ export default function StudentDocumentsPage() {
                         {doc.document_type.replace("_", " ")}
                       </p>
                       {doc.program && (
-                        <p className="text-sm text-red-600 dark:text-red-400">Program: {doc.program.name}</p>
+                        <p className="text-sm text-red-600 dark:text-red-400">Program: {doc.activity.name}</p>
                       )}
                     </div>
                   ))}
@@ -162,7 +162,7 @@ export default function StudentDocumentsPage() {
                       <CardContent>
                         <div className="space-y-2 text-sm text-muted-foreground">
                           <p className="capitalize">{doc.document_type.replace("_", " ")}</p>
-                          {doc.program && <p>Program: {doc.program.name}</p>}
+                          {doc.program && <p>Program: {doc.activity.name}</p>}
                           <p>Submitted: {new Date(doc.created_at).toLocaleDateString()}</p>
                         </div>
                       </CardContent>
@@ -194,7 +194,7 @@ export default function StudentDocumentsPage() {
                       <CardContent>
                         <div className="space-y-2 text-sm text-muted-foreground">
                           <p className="capitalize">{doc.document_type.replace("_", " ")}</p>
-                          {doc.program && <p>Program: {doc.program.name}</p>}
+                          {doc.program && <p>Program: {doc.activity.name}</p>}
                           {doc.reviewed_at && doc.reviewer && (
                             <p className="text-green-600 dark:text-green-400">
                               Approved by {doc.reviewer.first_name} {doc.reviewer.last_name}
@@ -230,7 +230,7 @@ export default function StudentDocumentsPage() {
                       <CardContent>
                         <div className="space-y-2 text-sm">
                           <p className="text-muted-foreground capitalize">{doc.document_type.replace("_", " ")}</p>
-                          {doc.program && <p className="text-muted-foreground">Program: {doc.program.name}</p>}
+                          {doc.program && <p className="text-muted-foreground">Program: {doc.activity.name}</p>}
                           {doc.notes && (
                             <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
                               <p className="text-red-700 dark:text-red-300 text-sm">
@@ -257,7 +257,7 @@ export default function StudentDocumentsPage() {
                     <span className="text-4xl mb-4 block">📄</span>
                     <h3 className="text-lg font-medium text-foreground mb-2">No documents yet</h3>
                     <p className="text-muted-foreground mb-6">
-                      Upload your required documents to get started with your programs.
+                      Upload your required documents to get started with your activities.
                     </p>
                     <Button asChild>
                       <Link href="/student/documents/upload">

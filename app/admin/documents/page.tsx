@@ -11,7 +11,7 @@ const mockDocuments = [
     document_type: "medical_form",
     status: "pending",
     student: { first_name: "John", last_name: "Doe", email: "john.doe@example.com" },
-    program: { name: "Advanced Mathematics" },
+    activity: { name: "Advanced Mathematics" },
     created_at: "2024-01-15T10:00:00Z",
     notes: "Please review for completeness",
   },
@@ -21,7 +21,7 @@ const mockDocuments = [
     document_type: "emergency_contact",
     status: "approved",
     student: { first_name: "Jane", last_name: "Smith", email: "jane.smith@example.com" },
-    program: { name: "Science Laboratory" },
+    activity: { name: "Science Laboratory" },
     created_at: "2024-01-12T14:30:00Z",
     reviewed_at: "2024-01-13T09:15:00Z",
     reviewer: { first_name: "Dr. Sarah", last_name: "Johnson" },
@@ -32,7 +32,7 @@ const mockDocuments = [
     document_type: "photo_release",
     status: "rejected",
     student: { first_name: "Mike", last_name: "Wilson", email: "mike.wilson@example.com" },
-    program: { name: "Creative Arts" },
+    activity: { name: "Creative Arts" },
     created_at: "2024-01-18T11:30:00Z",
     notes: "Form is incomplete. Please fill out all required fields.",
   },
@@ -163,7 +163,7 @@ export default function AdminDocumentsPage() {
                         {doc.program && (
                           <div className="flex items-center text-muted-foreground">
                             <span className="mr-2">📚</span>
-                            {doc.program.name}
+                            {doc.activity.name}
                           </div>
                         )}
 

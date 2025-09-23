@@ -2,10 +2,10 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
-import { Program } from '../types/program.types'
+import { Program } from '../types/activity.types'
 
 interface ProgramCardProps {
-  program: Program
+  activity: Program
   onViewDetails: (activityId: string) => void
   onEdit?: (activityId: string) => void
   className?: string
@@ -31,35 +31,35 @@ export function ProgramCard({ program, onViewDetails, onEdit, className }: Progr
     <Card className={`hover:shadow-md transition-shadow ${className}`}>
       <CardHeader>
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg">{program.name}</CardTitle>
-          <Badge className={getStatusColor(program.status)}>
-            {program.status}
+          <CardTitle className="text-lg">{activity.name}</CardTitle>
+          <Badge className={getStatusColor(activity.status)}>
+            {activity.status}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground line-clamp-2">
-          {program.description || 'No description provided'}
+          {activity.description || 'No description provided'}
         </p>
         
         <div className="space-y-2">
-          {program.staff && (
+          {activity.staff && (
             <div className="flex items-center text-sm text-muted-foreground">
               <span className="mr-2">👤</span>
-              {program.staff.first_name} {program.staff.last_name}
+              {activity.staff.first_name} {activity.staff.last_name}
             </div>
           )}
           
           <div className="flex items-center text-sm text-muted-foreground">
             <span className="mr-2">👥</span>
-            {program.current_participants} / {program.max_participants || 'Unlimited'} participants
+            {activity.current_participants} / {activity.max_participants || 'Unlimited'} participants
           </div>
           
-          {program.start_date && (
+          {activity.start_date && (
             <div className="flex items-center text-sm text-muted-foreground">
               <span className="mr-2">📅</span>
-              {new Date(program.start_date).toLocaleDateString()}
-              {program.end_date && ` - ${new Date(program.end_date).toLocaleDateString()}`}
+              {new Date(activity.start_date).toLocaleDateString()}
+              {activity.end_date && ` - ${new Date(activity.end_date).toLocaleDateString()}`}
             </div>
           )}
         </div>

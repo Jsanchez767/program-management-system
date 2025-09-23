@@ -32,13 +32,13 @@ export default function NewPurchaseOrderPage() {
     status: "draft",
   })
   const [items, setItems] = useState<PurchaseItem[]>([{ description: "", quantity: 1, unit_price: 0, total: 0 }])
-  const [programs, setPrograms] = useState<any[]>([])
+  const [activities, setActivities] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const loadPrograms = async () => {
+    const loadActivities = async () => {
       const supabase = createClient()
       const {
         data: { user },
@@ -51,9 +51,9 @@ export default function NewPurchaseOrderPage() {
         .eq("staff_id", user.id)
         .eq("status", "active")
         .order("name")
-      setPrograms(data || [])
+      setActivities(data || [])
     }
-    loadPrograms()
+    loadActivities()
   }, [])
 
   const calculateTotal = () => {
@@ -161,9 +161,9 @@ export default function NewPurchaseOrderPage() {
                         <SelectValue placeholder="Select a program" />
                       </SelectTrigger>
                       <SelectContent>
-                        {programs.map((program) => (
-                          <SelectItem key={program.id} value={program.id}>
-                            {program.name}
+                        {activities.map((program) => (
+                          <SelectItem key={activity.id} value={activity.id}>
+                            {activity.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

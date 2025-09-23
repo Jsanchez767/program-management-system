@@ -55,7 +55,7 @@ function AdminDashboard() {
   
   // Automatically updates when data changes
   const liveStats = useRealtimeDashboard(organizationId)
-  const livePrograms = useRealtimePrograms(organizationId)
+  const livePrograms = useRealtimeActivities(organizationId)
   const { newEnrollments, notifications } = useRealtimeEnrollments(organizationId)
   
   return (
@@ -126,7 +126,7 @@ function InstructorPrograms() {
   const staffId = user.id
   
   // Live list of staff's programs
-  const programs = useRealtimePrograms(organizationId, staffId)
+  const programs = useRealtimeActivities(organizationId, staffId)
   
   // Live enrollment notifications for their programs
   const { newEnrollments } = useRealtimeEnrollments(organizationId, staffId)
@@ -145,12 +145,12 @@ function InstructorPrograms() {
       
       {/* Program cards update in real-time */}
       <div className="programs-grid">
-        {programs.map(program => (
+        {activities.map(program => (
           <ProgramCard 
             key={activity.id} 
             program={program}
             // Live participant count updates
-            enrollmentCount={program.participants?.length || 0}
+            enrollmentCount={activity.participants?.length || 0}
             // Live capacity warnings
             nearCapacity={isNearCapacity(program)}
           />
@@ -184,7 +184,7 @@ function AnalyticsDashboard() {
         
         <MetricCard 
           title="Active Programs"
-          value={todayStats.activePrograms}
+          value={todayStats.activeActivities}
           trend={todayStats.programTrend}
           realtime={true}
         />

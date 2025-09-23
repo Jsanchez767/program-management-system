@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui/button"
 import { CheckCircle, Loader2, AlertCircle } from "lucide-react"
 import { Dialog, DialogContent } from "@/shared/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { useRealtimePrograms } from "@/lib/realtime-hooks"
+import { useRealtimeActivities } from "@/lib/realtime-hooks"
 
 type ProgramModalProps = {
   activityId: string,
@@ -18,7 +18,7 @@ type ProgramModalProps = {
 export default function ProgramModal({ activityId, open, onOpenChange, onOptimisticUpdate, organizationId }: ProgramModalProps) {
   // Defensive: Only run hooks inside the function
   const [program, setProgram] = useState<any>(null)
-  const programs = useRealtimePrograms(organizationId)
+  const programs = useRealtimeActivities(organizationId)
   const [editMode, setEditMode] = useState(false)
   // Local state for input fields, separate from saved program
   const [form, setForm] = useState<any>(null)

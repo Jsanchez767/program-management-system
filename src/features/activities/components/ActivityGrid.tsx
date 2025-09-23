@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import Link from 'next/link'
-import { ProgramCard } from './ProgramCard'
+import ActivityCard'
 import { usePrograms } from '../hooks/usePrograms'
-import { Program } from '../types/program.types'
+import { Program } from '../types/activity.types'
 
 interface ProgramGridProps {
   organizationId: string
@@ -18,7 +18,7 @@ export function ProgramGrid({ organizationId, onProgramSelect, showAddButton = t
 
   // Delayed placeholder logic
   useEffect(() => {
-    if (!loading && programs.length === 0) {
+    if (!loading && activities.length === 0) {
       const timer = setTimeout(() => {
         setShowPlaceholder(true)
       }, 3000)
@@ -27,7 +27,7 @@ export function ProgramGrid({ organizationId, onProgramSelect, showAddButton = t
     } else {
       setShowPlaceholder(false)
     }
-  }, [loading, programs.length])
+  }, [loading, activities.length])
 
   if (loading) {
     return (
@@ -43,10 +43,10 @@ export function ProgramGrid({ organizationId, onProgramSelect, showAddButton = t
     )
   }
 
-  if (programs.length > 0) {
+  if (activities.length > 0) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {programs.map((program) => (
+        {activities.map((program) => (
           <ProgramCard
             key={activity.id}
             program={program}
@@ -67,13 +67,13 @@ export function ProgramGrid({ organizationId, onProgramSelect, showAddButton = t
                 <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
                   <span className="text-4xl">📚</span>
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">No programs yet</h3>
+                <h3 className="text-lg font-medium text-foreground mb-2">No activities yet</h3>
                 <p className="text-muted-foreground mb-6">
-                  Get started by creating your first educational program.
+                  Get started by creating your first educational activity.
                 </p>
                 {showAddButton && (
                   <Button asChild>
-                    <Link href="/admin/programs/new">
+                    <Link href="/admin/activities/new">
                       <span className="mr-2">➕</span>
                       Create Program
                     </Link>

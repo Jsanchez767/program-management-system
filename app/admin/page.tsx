@@ -16,12 +16,12 @@ export const dynamic = 'force-dynamic'
 export default function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState({
     stats: {
-      totalPrograms: 0,
+      totalActivities: 0,
       totalParticipants: 0,
       activeAnnouncements: 0,
       pendingDocuments: 0
     },
-    recentPrograms: [] as ActivityWithInstructor[]
+    recentActivities: [] as ActivityWithInstructor[]
   })
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
@@ -102,12 +102,12 @@ export default function AdminDashboard() {
           // Enhance programs with staff info from user metadata
           const programsWithInstructors = await Promise.all(
             programsResult.data.map(async (program) => {
-              if (program.staff_id) {
+              if (activity.staff_id) {
                 // Get staff info from auth.users via RPC
                 const { data: staffData } = await supabase
                   .rpc('get_staffs_for_organization', { org_id: organizationId })
                 
-                const staff = staffData?.find((inst: any) => inst.id === program.staff_id)
+                const staff = staffData?.find((inst: any) => inst.id === activity.staff_id)
                 return {
                   ...program,
                   staff: staff || null
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
 
           setDashboardData(prev => ({
             ...prev,
-            recentPrograms: programsWithInstructors
+            recentActivities: programsWithInstructors
           }))
         }
       } catch (error) {
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
     loadData()
   }, [supabase])
 
-  const { stats, recentPrograms } = dashboardData
+  const { stats, recentActivities } = dashboardData
 
   return (
     <div className="min-h-screen bg-background">
@@ -179,8 +179,8 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   <StatsCard
-                    title="Total Programs"
-                    value={stats.totalPrograms}
+                    title="Total Activities"
+                    value={stats.totalActivities}
                     icon={BookOpen}
                     trend={{ value: 12, isPositive: true }}
                   />
@@ -265,29 +265,29 @@ export default function AdminDashboard() {
                   </Card>
                 </div>
 
-                {/* Recent Programs */}
+                {/* Recent Activities */}
                 <Card className="mb-8">
                   <CardHeader>
-                    <CardTitle>Recent Programs</CardTitle>
+                    <CardTitle>Recent Activities</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {recentPrograms.length > 0 ? (
-                        recentPrograms.map((program: ActivityWithInstructor) => (
-                          <div key={program.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      {recentActivities.length > 0 ? (
+                        recentActivities.map((activity: ActivityWithInstructor) => (
+                          <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div>
-                              <h3 className="font-semibold">{program.name}</h3>
+                              <h3 className="font-semibold">{activity.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Staff: {program.staff_metadata?.first_name} {program.staff_metadata?.last_name}
+                                Staff: {activity.staff_metadata?.first_name} {activity.staff_metadata?.last_name}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                program.status === 'active' ? 'bg-green-100 text-green-800' :
-                                program.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                activity.status === 'active' ? 'bg-green-100 text-green-800' :
+                                activity.status === 'completed' ? 'bg-blue-100 text-blue-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
-                                {program.status}
+                                {activity.status}
                               </span>
                             </div>
                           </div>

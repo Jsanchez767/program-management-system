@@ -5,14 +5,14 @@ import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
 import { Button } from "@/ui/button"
 import Link from "next/link"
 import { useUser } from "@/shared/hooks/use-user"
-import { ProgramGrid } from "@/features/programs/components/ProgramGrid"
-import ProgramModal from "./[id]/ProgramModal"
-import EditProgramModal from "./[id]/EditProgramModal"
+import ActivityGrid"
+import ActivityModal"
+import ActivityModal"
 
 export const dynamic = "force-dynamic"
 export const fetchCache = "force-no-store"
 
-export default function AdminProgramsPage() {
+export default function AdminActivitiesPage() {
   const { user } = useUser()
   const organizationId = user?.user_metadata?.organization_id
 
@@ -37,18 +37,18 @@ export default function AdminProgramsPage() {
             <div>
               <h1 className="text-3xl font-bold text-foreground">Programs</h1>
               <p className="text-muted-foreground mt-2">
-                Manage all educational programs and activities
+                Manage all educational activities and activities
               </p>
             </div>
             <Button asChild>
-              <Link href="/admin/programs/new">
+              <Link href="/admin/activities/new">
                 <span className="mr-2">➕</span>
                 New Program
               </Link>
             </Button>
           </div>
 
-          {/* Programs Grid - Now using the new component */}
+          {/* Activities Grid - Now using the new component */}
           {organizationId && (
             <ProgramGrid
               organizationId={organizationId}
