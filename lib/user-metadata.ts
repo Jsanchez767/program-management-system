@@ -23,7 +23,7 @@ export async function getUserMetadata(): Promise<UserMetadata | null> {
 
 export async function getUserRole(): Promise<string | null> {
   const metadata = await getUserMetadata()
-  return metadata?.role || 'participant' // default to student role
+  return metadata?.role || 'participant' // default to participant role
 }
 
 export async function getUserOrganizationId(): Promise<string | null> {

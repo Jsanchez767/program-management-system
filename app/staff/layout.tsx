@@ -1,6 +1,6 @@
 import type React from "react"
 
-export default function InstructorLayout({
+export default function StaffLayout({
   children,
 }: {
   children: React.ReactNode

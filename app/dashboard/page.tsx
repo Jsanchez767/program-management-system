@@ -33,7 +33,7 @@ export default function DashboardPage() {
             router.push("/staff")
             break
           case 'participant':
-            router.push("/student")
+            router.push("/participant")
             break
           default:
             router.push("/auth/login")
