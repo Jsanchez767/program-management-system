@@ -20,15 +20,22 @@ export default function AdminProgramsPage() {
   const organizationId = user?.user_metadata?.organization_id
   const realtimePrograms = useRealtimePrograms(organizationId || "")
   const [programs, setPrograms] = useState<any[]>([])
-  const [isLoaded, setIsLoaded] = useState(false)
-  const isLoading = !organizationId || !isLoaded
+  const [hasDataLoaded, setHasDataLoaded] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const isLoading = !organizationId || !hasDataLoaded || !isMounted
+
+  // Ensure we're client-side before showing any content
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Sync local programs state with realtime updates
   useEffect(() => {
-    setPrograms(realtimePrograms || [])
-    // Set loaded to true once we receive data (even if empty array)
-    if (realtimePrograms !== null) setIsLoaded(true)
-  }, [realtimePrograms])
+    if (organizationId && realtimePrograms !== undefined) {
+      setPrograms(realtimePrograms || [])
+      setHasDataLoaded(true)
+    }
+  }, [realtimePrograms, organizationId])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -126,7 +133,7 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               ))
-            ) : isLoaded ? (
+            ) : hasDataLoaded && isMounted ? (
               <div className="col-span-full">
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">
