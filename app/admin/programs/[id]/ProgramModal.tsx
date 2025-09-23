@@ -1,6 +1,6 @@
-  // Debounce ref for input reliability
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 "use client"
+// Debounce ref for input reliability
+const debounceRef = useRef<NodeJS.Timeout | null>(null);
 import { Button } from "@/components/ui/button"
 import { useEffect, useState, useRef } from "react"
 import { CheckCircle, Loader2, AlertCircle } from "lucide-react"
