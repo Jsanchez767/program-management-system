@@ -9,11 +9,11 @@ import { useRouter } from "next/navigation"
 
 const navigation = [
   { name: "Dashboard", href: "/student", icon: "📊" },
-  { name: "My Programs", href: "/student/programs", icon: "📚" },
-  { name: "Announcements", href: "/student/announcements", icon: "📢" },
-  { name: "Documents", href: "/student/documents", icon: "📄" },
-  { name: "Schedule", href: "/student/schedule", icon: "📅" },
-  { name: "Profile", href: "/student/profile", icon: "👤" },
+  { name: "Dashboard", href: "/participant", icon: "📚" },
+  { name: "Announcements", href: "/participant/announcements", icon: "📢" },
+  { name: "Documents", href: "/participant/documents", icon: "📄" },
+  { name: "Schedule", href: "/participant/schedule", icon: "📅" },
+  { name: "Profile", href: "/participant/profile", icon: "👤" },
 ]
 
 export function ParticipantSidebar() {

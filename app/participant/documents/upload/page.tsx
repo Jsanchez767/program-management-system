@@ -83,7 +83,7 @@ export default function UploadDocumentPage() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000))
-      router.push("/student/documents")
+      router.push("/participant/documents")
     } catch (error: any) {
       setError(error.message)
     } finally {
@@ -104,7 +104,7 @@ export default function UploadDocumentPage() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Button variant="outline" size="icon" asChild>
-              <Link href="/student/documents">
+              <Link href="/participant/documents">
                 <span>←</span>
               </Link>
             </Button>
@@ -219,7 +219,7 @@ export default function UploadDocumentPage() {
                     {isLoading ? "Uploading..." : "Upload Document"}
                   </Button>
                   <Button type="button" variant="outline" asChild>
-                    <Link href="/student/documents">Cancel</Link>
+                    <Link href="/participant/documents">Cancel</Link>
                   </Button>
                 </div>
               </form>

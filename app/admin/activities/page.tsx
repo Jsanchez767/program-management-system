@@ -78,13 +78,13 @@ export default function AdminProgramsPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Programs</h1>
-              <p className="text-muted-foreground mt-2">Manage all educational programs and activities</p>
+              <h1 className="text-3xl font-bold text-foreground">Activities</h1>
+              <p className="text-muted-foreground mt-2">Manage all educational activities and programs</p>
             </div>
             <Button asChild>
-              <Link href="/admin/programs/new">
+              <Link href="/admin/activities/new">
                 <span className="mr-2">➕</span>
-                New Program
+                New Activity
               </Link>
             </Button>
           </div>
