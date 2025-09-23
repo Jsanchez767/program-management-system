@@ -31,55 +31,39 @@ export default function InvitationsPage() {
   const loadOrganization = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        console.error('No user found')
-        return
-      }
-
-      console.log('Loading organization for user:', user.id)
-      console.log('User metadata:', user.user_metadata)
+      if (!user) return
 
       // Try multiple ways to get organization_id
       let organizationId = user.user_metadata?.organization_id
 
       // If not in metadata, try to find organization where user is admin
       if (!organizationId) {
-        console.log('No organization_id in metadata, trying admin lookup...')
-        const { data: adminOrg, error: adminError } = await supabase
+        const { data: adminOrg } = await supabase
           .from('organizations')
           .select('*')
           .eq('admin_id', user.id)
           .single()
         
-        console.log('Admin lookup result:', { adminOrg, adminError })
-        
         if (adminOrg) {
           organizationId = adminOrg.id
           setOrganization(adminOrg)
-          console.log('Found organization via admin lookup:', adminOrg)
           return
         }
       }
 
       // If we have organizationId from metadata, fetch the organization
       if (organizationId) {
-        console.log('Fetching organization by ID:', organizationId)
         const { data: org, error } = await supabase
           .from('organizations')
           .select('*')
           .eq('id', organizationId)
           .single()
         
-        console.log('Organization fetch result:', { org, error })
-        
         if (error) {
           console.error('Error fetching organization:', error)
         } else {
           setOrganization(org)
-          console.log('Organization set:', org)
         }
-      } else {
-        console.error('No organization ID found anywhere')
       }
     } catch (error) {
       console.error('Error loading organization:', error)
@@ -110,51 +94,28 @@ export default function InvitationsPage() {
 
   const sendInvitation = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!organization) {
-      console.error('No organization found')
-      toast({
-        title: "Error",
-        description: "Organization not found. Please refresh and try again.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    console.log('Sending invitation:', { organization, email, role })
+    if (!organization) return
 
     setIsLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      console.log('Current user:', user.id)
-      console.log('Organization ID:', organization.id)
-
-      const invitationData = {
-        organization_id: organization.id,
-        email: email,
-        role: role,
-        invited_by: user.id
-      }
-
-      console.log('Invitation data to insert:', invitationData)
-
       const { data, error } = await supabase
         .from('invitations')
-        .insert(invitationData)
+        .insert({
+          organization_id: organization.id,
+          email: email,
+          role: role,
+          invited_by: user.id
+        })
         .select()
         .single()
 
-      console.log('Supabase response:', { data, error })
-
-      if (error) {
-        console.error('Supabase error details:', error)
-        throw error
-      }
+      if (error) throw error
 
       // Generate invitation link
       const inviteLink = `${window.location.origin}/auth/invitation?token=${data.token}`
-      console.log('Generated invitation link:', inviteLink)
       
       toast({
         title: "Invitation sent!",
