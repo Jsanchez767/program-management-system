@@ -9,7 +9,7 @@ import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
 import { Badge } from "@/shared/components/ui/badge"
-import { Trash2, Send, Copy, CheckCircle, XCircle } from "lucide-react"
+import { Trash2, Send, Copy, CheckCircle, XCircle, RefreshCw } from "lucide-react"
 import { useToast } from "@/shared/hooks/use-toast"
 import type { OrganizationInvite, Organization } from "@/lib/types/database"
 
@@ -17,6 +17,8 @@ export default function InvitationsPage() {
   const [invitations, setInvitations] = useState<OrganizationInvite[]>([])
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [email, setEmail] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [role, setRole] = useState("participant")
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(true)
@@ -120,7 +122,16 @@ export default function InvitationsPage() {
       return
     }
 
-    console.log('Sending invitation:', { organization, email, role })
+    if (!firstName.trim() || !lastName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter both first and last name.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    console.log('Sending invitation:', { organization, email, firstName, lastName, role })
 
     setIsLoading(true)
     try {
@@ -130,39 +141,67 @@ export default function InvitationsPage() {
       console.log('Current user:', user.id)
       console.log('Organization ID:', organization.id)
 
+      // Step 1: Create the invitation record
       const invitationData = {
         organization_id: organization.id,
         email: email,
         role: role,
-        invited_by: user.id
+        invited_by: user.id,
+        first_name: firstName,
+        last_name: lastName,
+        status: 'pending'
       }
 
       console.log('Invitation data to insert:', invitationData)
 
-      const { data, error } = await supabase
+      const { data: invitation, error } = await supabase
         .from('invitations')
         .insert(invitationData)
         .select()
         .single()
 
-      console.log('Supabase response:', { data, error })
+      console.log('Supabase response:', { invitation, error })
 
       if (error) {
         console.error('Supabase error details:', error)
         throw error
       }
 
-      // Generate invitation link
-      const inviteLink = `${window.location.origin}/auth/invitation?token=${data.token}`
-      console.log('Generated invitation link:', inviteLink)
+      // Step 2: Create the user account via API
+      console.log('Creating user account...')
+      const createUserResponse = await fetch('/api/invitations/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          role: role,
+          organizationId: organization.id,
+          organizationName: organization.name,
+          invitationId: invitation.id
+        }),
+      })
+
+      const createUserResult = await createUserResponse.json()
+      
+      if (!createUserResponse.ok) {
+        throw new Error(createUserResult.error || 'Failed to create user account')
+      }
+
+      console.log('User created successfully:', createUserResult)
       
       toast({
         title: "Invitation sent!",
-        description: `Invitation sent to ${email}`,
+        description: `User account created for ${firstName} ${lastName}. Confirmation email sent to ${email}.`,
       })
 
       // Reset form
       setEmail("")
+      setFirstName("")
+      setLastName("")
       setRole("participant")
       
       // Reload invitations
@@ -196,6 +235,39 @@ export default function InvitationsPage() {
     }
   }
 
+  const resendInvitation = async (invitationId: string) => {
+    try {
+      const response = await fetch('/api/invitations/resend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ invitationId }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to resend invitation')
+      }
+
+      toast({
+        title: "Invitation resent!",
+        description: result.message,
+      })
+
+      // Reload invitations to show updated status
+      loadInvitations()
+    } catch (error) {
+      console.error('Error resending invitation:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to resend invitation",
+        variant: "destructive",
+      })
+    }
+  }
+
   const deleteInvitation = async (id: string) => {
     try {
       const { error } = await supabase
@@ -224,6 +296,10 @@ export default function InvitationsPage() {
   const getStatusBadge = (invitation: OrganizationInvite) => {
     if (invitation.accepted_at) {
       return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Accepted</Badge>
+    }
+    
+    if (invitation.status === 'user_created') {
+      return <Badge variant="default" className="bg-blue-100 text-blue-800"><Send className="w-3 h-3 mr-1" />Awaiting Confirmation</Badge>
     }
     
     const isExpired = new Date(invitation.expires_at) < new Date()
@@ -263,6 +339,30 @@ export default function InvitationsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={sendInvitation} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email address</Label>
@@ -290,7 +390,7 @@ export default function InvitationsPage() {
               </div>
               <div className="flex items-end">
                 <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? "Sending..." : "Send Invitation"}
+                  {isLoading ? "Creating User..." : "Send Invitation"}
                 </Button>
               </div>
             </div>
@@ -319,6 +419,7 @@ export default function InvitationsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
@@ -330,7 +431,13 @@ export default function InvitationsPage() {
               <TableBody>
                 {invitations.map((invitation) => (
                   <TableRow key={invitation.id}>
-                    <TableCell className="font-medium">{invitation.email}</TableCell>
+                    <TableCell className="font-medium">
+                      {invitation.first_name && invitation.last_name 
+                        ? `${invitation.first_name} ${invitation.last_name}`
+                        : '-'
+                      }
+                    </TableCell>
+                    <TableCell>{invitation.email}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{invitation.role}</Badge>
                     </TableCell>
@@ -339,11 +446,22 @@ export default function InvitationsPage() {
                     <TableCell>{new Date(invitation.expires_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
+                        {!invitation.accepted_at && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => resendInvitation(invitation.id)}
+                            title="Resend invitation"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </Button>
+                        )}
                         {!invitation.accepted_at && new Date(invitation.expires_at) > new Date() && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => copyInviteLink(invitation.token)}
+                            title="Copy invitation link"
                           >
                             <Copy className="w-4 h-4" />
                           </Button>
@@ -352,6 +470,7 @@ export default function InvitationsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => deleteInvitation(invitation.id)}
+                          title="Delete invitation"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

@@ -43,6 +43,10 @@ export interface OrganizationInvite {
   role: UserRole
   invited_by: string
   token: string
+  first_name?: string
+  last_name?: string
+  user_id?: string
+  status?: 'pending' | 'user_created' | 'accepted' | 'expired'
   accepted_at?: string
   expires_at: string
   created_at: string
