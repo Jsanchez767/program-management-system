@@ -45,7 +45,7 @@ grant select on public.user_profiles to authenticated;
 -- {
 --   "first_name": "John",
 --   "last_name": "Doe", 
---   "role": "admin|instructor|student",
+--   "role": "admin|staff|student",
 --   "organization_id": "uuid-string"
 -- }
 
@@ -107,7 +107,7 @@ begin
     new.email,
     coalesce(new.raw_user_meta_data ->> 'first_name', null),
     coalesce(new.raw_user_meta_data ->> 'last_name', null),
-    coalesce(new.raw_user_meta_data ->> 'role', 'student')
+    coalesce(new.raw_user_meta_data ->> 'role', 'participant')
   )
   on conflict (id) do nothing;
 

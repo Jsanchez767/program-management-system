@@ -3,8 +3,8 @@ export interface Invitation {
   id: string
   organization_id: string
   email: string
-  role: 'admin' | 'instructor' | 'student'
-  program_ids?: string[]
+  role: 'admin' | 'staff' | 'participant'
+  activity_ids?: string[]
   invited_by: string
   status: 'pending' | 'accepted' | 'declined' | 'expired'
   expires_at: string
@@ -30,7 +30,7 @@ export interface Invitation {
 export interface InvitationFormData {
   email: string
   role: Invitation['role']
-  program_ids?: string[]
+  activity_ids?: string[]
   custom_message?: string
   expires_in_days?: number
   custom_fields?: Record<string, any>
@@ -39,7 +39,7 @@ export interface InvitationFormData {
 export interface BulkInvitationData {
   emails: string[]
   role: Invitation['role']
-  program_ids?: string[]
+  activity_ids?: string[]
   custom_message?: string
   expires_in_days?: number
 }
@@ -47,7 +47,7 @@ export interface BulkInvitationData {
 export interface InvitationFilters {
   status?: Invitation['status']
   role?: Invitation['role']
-  program_id?: string
+  activity_id?: string
   search?: string
   date_range?: {
     start: string

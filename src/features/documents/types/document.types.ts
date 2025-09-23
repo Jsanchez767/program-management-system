@@ -4,7 +4,7 @@ export interface Document {
   name: string
   description?: string
   organization_id: string
-  program_id?: string
+  activity_id?: string
   file_path: string
   file_size: number
   file_type: string
@@ -44,7 +44,7 @@ export interface DocumentAccess {
 export interface DocumentFormData {
   name: string
   description?: string
-  program_id?: string
+  activity_id?: string
   category: Document['category']
   access_level: Document['access_level']
   tags?: string[]
@@ -55,7 +55,7 @@ export interface DocumentFormData {
 export interface DocumentFilters {
   category?: Document['category']
   access_level?: Document['access_level']
-  program_id?: string
+  activity_id?: string
   tags?: string[]
   file_type?: string
   search?: string

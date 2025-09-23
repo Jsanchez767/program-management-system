@@ -8,14 +8,14 @@ async function getParticipants() {
   const supabase = await createClient()
 
   const { data: participants } = await supabase
-    .from("program_participants")
+    .from("participants")
     .select(`
       id,
       enrollment_date,
       status,
-      student_id,
-      program_id,
-      profiles!program_participants_student_id_fkey(
+      participant_id,
+      activity_id,
+      profiles!program_participants_participant_id_fkey(
         id,
         first_name,
         last_name,

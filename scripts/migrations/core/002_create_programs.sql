@@ -8,7 +8,7 @@ create table if not exists public.programs (
   end_date date,
   max_participants integer,
   current_participants integer default 0,
-  instructor_id uuid references public.profiles(id) on delete set null,
+  staff_id uuid references public.profiles(id) on delete set null,
   status text not null check (status in ('active', 'inactive', 'completed', 'cancelled')) default 'active',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -22,21 +22,21 @@ create policy "programs_select_all"
   on public.programs for select
   using (true); -- All authenticated users can view programs
 
-create policy "programs_insert_admin_instructor"
+create policy "programs_insert_admin_staff"
   on public.programs for insert
   with check (
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'instructor')
+      where id = auth.uid() and role in ('admin', 'staff')
     )
   );
 
-create policy "programs_update_admin_instructor"
+create policy "programs_update_admin_staff"
   on public.programs for update
   using (
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and (role = 'admin' or (role = 'instructor' and id = instructor_id))
+      where id = auth.uid() and (role = 'admin' or (role = 'staff' and id = staff_id))
     )
   );
 

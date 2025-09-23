@@ -8,7 +8,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   // Only allow updating fields present in body
   const { error } = await supabase
-    .from('programs')
+    .from('activities')
     .update(body)
     .eq('id', id);
 

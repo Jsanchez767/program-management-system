@@ -75,7 +75,7 @@ export default function AdminFieldTripsPage() {
               <div>
                 <h1 className="text-3xl font-bold mb-2">Field Trips</h1>
                 <p className="text-muted-foreground">
-                  Review and manage field trip proposals from instructors
+                  Review and manage field trip proposals from staffs
                 </p>
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function AdminFieldTripsPage() {
               <div className="col-span-full text-center py-12">
                 <p className="text-muted-foreground mb-4">No field trips found</p>
                 <p className="text-sm text-muted-foreground">
-                  Field trip proposals from instructors will appear here
+                  Field trip proposals from staffs will appear here
                 </p>
               </div>
             )}

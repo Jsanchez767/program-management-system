@@ -78,10 +78,10 @@ CREATE POLICY "organizations_update_admin_metadata"
 -- Skipping to avoid "already exists" errors
 
 -- Just dropping any old policies that might conflict
-DROP POLICY IF EXISTS "participants_select_own_or_admin_instructor" ON public.program_participants;
-DROP POLICY IF EXISTS "participants_insert_admin_instructor" ON public.program_participants;
-DROP POLICY IF EXISTS "participants_update_admin_instructor" ON public.program_participants;
-DROP POLICY IF EXISTS "participants_delete_admin_instructor" ON public.program_participants;
+DROP POLICY IF EXISTS "participants_select_own_or_admin_staff" ON public.program_participants;
+DROP POLICY IF EXISTS "participants_insert_admin_staff" ON public.program_participants;
+DROP POLICY IF EXISTS "participants_update_admin_staff" ON public.program_participants;
+DROP POLICY IF EXISTS "participants_delete_admin_staff" ON public.program_participants;
 
 -- The new policies are already created in script 015, so we skip recreation here
 

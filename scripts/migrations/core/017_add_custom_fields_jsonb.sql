@@ -1,5 +1,5 @@
 -- Phase 1: Add JSONB custom fields to existing tables
--- This gives admins/instructors immediate flexibility while you validate demand
+-- This gives admins/staffs immediate flexibility while you validate demand
 
 -- Add custom fields to core tables
 ALTER TABLE public.programs 
@@ -66,7 +66,7 @@ INSERT INTO custom_form_definitions (
                 "required": true
             },
             {
-                "name": "max_students",
+                "name": "max_participants",
                 "type": "number",
                 "label": "Maximum Students",
                 "min": 1,
@@ -88,7 +88,7 @@ INSERT INTO custom_form_definitions (
                 "required": false
             },
             {
-                "name": "instructor_certifications",
+                "name": "staff_certifications",
                 "type": "checkbox",
                 "label": "Required Instructor Certifications",
                 "options": ["teaching_license", "subject_certification", "cpr_certified"],
@@ -96,7 +96,7 @@ INSERT INTO custom_form_definitions (
             }
         ],
         "validation": {
-            "max_students": {"min": 1, "max": 100}
+            "max_participants": {"min": 1, "max": 100}
         }
     }'::jsonb,
     auth.uid()
@@ -110,9 +110,9 @@ SELECT
     p.name,
     p.description,
     p.custom_fields->>'difficulty_level' as difficulty,
-    (p.custom_fields->>'max_students')::integer as max_students,
+    (p.custom_fields->>'max_participants')::integer as max_participants,
     p.custom_fields->'prerequisites' as prerequisites
-FROM programs p
+FROM activities p
 WHERE p.organization_id = (auth.jwt() ->> 'organization_id')::uuid
   AND p.custom_fields->>'difficulty_level' = 'advanced';
 
@@ -128,10 +128,10 @@ INSERT INTO programs (
     (auth.jwt() ->> 'organization_id')::uuid,
     '{
         "difficulty_level": "advanced",
-        "max_students": 25,
+        "max_participants": 25,
         "prerequisites": ["algebra", "geometry", "pre_calculus"],
         "special_equipment": "Graphing calculators required for each student",
-        "instructor_certifications": ["teaching_license", "math_certification"]
+        "staff_certifications": ["teaching_license", "math_certification"]
     }'::jsonb
 );
 */
@@ -186,10 +186,10 @@ WITH program_stats AS (
     SELECT 
         p.custom_fields->>'difficulty_level' as difficulty,
         COUNT(*) as program_count,
-        AVG((p.custom_fields->>'max_students')::integer) as avg_max_students,
+        AVG((p.custom_fields->>'max_participants')::integer) as avg_max_participants,
         COUNT(pp.id) as total_enrollments
-    FROM programs p
-    LEFT JOIN program_participants pp ON pp.program_id = p.id
+    FROM activities p
+    LEFT JOIN participants pp ON pp.activity_id = p.id
     WHERE p.organization_id = (auth.jwt() ->> 'organization_id')::uuid
       AND p.custom_fields ? 'difficulty_level'
     GROUP BY p.custom_fields->>'difficulty_level'

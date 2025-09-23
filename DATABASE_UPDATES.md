@@ -6,13 +6,13 @@ This document outlines the recent updates made to align the codebase with the ac
 
 ### Updated Database Types (`lib/types/database.ts`)
 - ✅ **Profile**: Updated with correct fields (id, email, first_name, last_name, phone, role, etc.)
-- ✅ **Program**: Updated with instructor_id foreign key and proper fields
-- ✅ **ProgramParticipant**: Updated with student_id and program_id foreign keys
-- ✅ **Announcement**: Updated with author_id and optional program_id
-- ✅ **Document**: Updated with student_id and optional program_id
-- ✅ **LessonPlan**: Updated with instructor_id and program_id
-- ✅ **PurchaseOrder**: Updated with instructor_id and program_id
-- ✅ **FieldTrip**: Updated with instructor_id and program_id
+- ✅ **Program**: Updated with staff_id foreign key and proper fields
+- ✅ **ProgramParticipant**: Updated with participant_id and activity_id foreign keys
+- ✅ **Announcement**: Updated with author_id and optional activity_id
+- ✅ **Document**: Updated with participant_id and optional activity_id
+- ✅ **LessonPlan**: Updated with staff_id and activity_id
+- ✅ **PurchaseOrder**: Updated with staff_id and activity_id
+- ✅ **FieldTrip**: Updated with staff_id and activity_id
 
 ### Enhanced Database Operations (`lib/database/operations.ts`)
 - ✅ **Server-side client**: Updated to use createServerClient for proper SSR
@@ -35,7 +35,7 @@ Run this script in your Supabase SQL editor to set up complete security:
 
 #### 🔧 **Helper Functions**
 - `is_admin()` - Check if current user is admin
-- `is_instructor()` - Check if current user is instructor  
+- `is_staff()` - Check if current user is staff  
 - `is_student()` - Check if current user is student
 - `get_user_role()` - Get current user's role
 
@@ -46,42 +46,42 @@ Run this script in your Supabase SQL editor to set up complete security:
 
 #### 📚 **Programs Table**
 - All authenticated users can view programs
-- Admins and instructors can create programs
-- Admins can update any program, instructors can update their own
+- Admins and staffs can create programs
+- Admins can update any program, staffs can update their own
 - Only admins can delete programs
 
 #### 👥 **Program Participants Table**
 - Students can view their own enrollments
 - Instructors can view participants in their programs
 - Admins can view all participants
-- Admins and instructors can enroll/manage students
+- Admins and staffs can enroll/manage participants
 
 #### 📢 **Announcements Table**
 - Users see published announcements targeted to their role
-- Program-specific announcements shown to enrolled students
+- Program-specific announcements shown to enrolled participants
 - Authors and admins can view all their announcements
-- Admins and instructors can create announcements
+- Admins and staffs can create announcements
 
 #### 📄 **Documents Table**
 - Students can view/upload their own documents
-- Instructors can view documents from their program students
+- Instructors can view documents from their program participants
 - Admins can view all documents
-- Status updates allowed by instructors and admins
+- Status updates allowed by staffs and admins
 
 #### 📝 **Lesson Plans Table**
 - Instructors can view/edit their own lesson plans
 - Admins can view/edit all lesson plans
-- Lesson plans linked to instructor's programs only
+- Lesson plans linked to staff's programs only
 
 #### 💰 **Purchase Orders Table**
 - Instructors can view/edit their own purchase orders
 - Admins can view/edit all purchase orders
-- Purchase orders linked to instructor's programs only
+- Purchase orders linked to staff's programs only
 
 #### 🚌 **Field Trips Table**
 - Instructors can view/edit their own field trips
 - Admins can view/edit all field trips
-- Field trips linked to instructor's programs only
+- Field trips linked to staff's programs only
 
 ## 🚀 Key Improvements
 

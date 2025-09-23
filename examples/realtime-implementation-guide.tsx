@@ -123,13 +123,13 @@ function CustomFieldBuilder() {
 function InstructorPrograms() {
   const user = useUser()
   const organizationId = user?.user_metadata?.organization_id
-  const instructorId = user.id
+  const staffId = user.id
   
-  // Live list of instructor's programs
-  const programs = useRealtimePrograms(organizationId, instructorId)
+  // Live list of staff's programs
+  const programs = useRealtimePrograms(organizationId, staffId)
   
   // Live enrollment notifications for their programs
-  const { newEnrollments } = useRealtimeEnrollments(organizationId, instructorId)
+  const { newEnrollments } = useRealtimeEnrollments(organizationId, staffId)
   
   return (
     <div>
@@ -137,7 +137,7 @@ function InstructorPrograms() {
       {newEnrollments.map(enrollment => (
         <Notification key={enrollment.id} type="success">
           New student enrolled in {enrollment.programName}!
-          <Button onClick={() => viewStudent(enrollment.studentId)}>
+          <Button onClick={() => viewStudent(enrollment.participantId)}>
             View Student
           </Button>
         </Notification>
@@ -147,7 +147,7 @@ function InstructorPrograms() {
       <div className="programs-grid">
         {programs.map(program => (
           <ProgramCard 
-            key={program.id} 
+            key={activity.id} 
             program={program}
             // Live participant count updates
             enrollmentCount={program.participants?.length || 0}

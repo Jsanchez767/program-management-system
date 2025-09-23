@@ -1,15 +1,15 @@
 -- Enable RLS on programs table
 ALTER TABLE public.programs ENABLE ROW LEVEL SECURITY;
 
--- RLS policy: Only allow admins/instructors to insert programs in their org
-CREATE POLICY "Allow admins and instructors in their org to insert programs"
+-- RLS policy: Only allow admins/staffs to insert programs in their org
+CREATE POLICY "Allow admins and staffs in their org to insert programs"
   ON public.programs
   FOR INSERT
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM auth.users
       WHERE id = auth.uid()
-        AND raw_user_meta_data->>'role' IN ('admin', 'instructor')
+        AND raw_user_meta_data->>'role' IN ('admin', 'staff')
         AND raw_user_meta_data->>'organization_id' = organization_id::text
     )
   );

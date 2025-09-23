@@ -17,7 +17,7 @@ export default function InvitationsPage() {
   const [invitations, setInvitations] = useState<OrganizationInvite[]>([])
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [email, setEmail] = useState("")
-  const [role, setRole] = useState("student")
+  const [role, setRole] = useState("participant")
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(true)
   const { toast } = useToast()
@@ -103,7 +103,7 @@ export default function InvitationsPage() {
 
       // Reset form
       setEmail("")
-      setRole("student")
+      setRole("participant")
       
       // Reload invitations
       loadInvitations()
@@ -222,8 +222,8 @@ export default function InvitationsPage() {
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="instructor">Instructor</SelectItem>
+                    <SelectItem value="participant">Student</SelectItem>
+                    <SelectItem value="staff">Instructor</SelectItem>
                     <SelectItem value="admin">Administrator</SelectItem>
                   </SelectContent>
                 </Select>

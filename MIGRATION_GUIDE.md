@@ -84,8 +84,8 @@ export default function AdminProgramsPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null)
 
-  const handleProgramSelect = (programId: string) => {
-    setSelectedProgramId(programId)
+  const handleProgramSelect = (activityId: string) => {
+    setSelectedProgramId(activityId)
     setModalOpen(true)
   }
 
@@ -121,7 +121,7 @@ export default function AdminProgramsPage() {
           {/* Keep existing modals for now */}
           {selectedProgramId && (
             <ProgramModal
-              programId={selectedProgramId}
+              activityId={selectedProgramId}
               open={modalOpen}
               onOpenChange={(open: boolean) => {
                 setModalOpen(open)

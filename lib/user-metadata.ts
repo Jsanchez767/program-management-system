@@ -23,7 +23,7 @@ export async function getUserMetadata(): Promise<UserMetadata | null> {
 
 export async function getUserRole(): Promise<string | null> {
   const metadata = await getUserMetadata()
-  return metadata?.role || 'student' // default to student role
+  return metadata?.role || 'participant' // default to student role
 }
 
 export async function getUserOrganizationId(): Promise<string | null> {
@@ -36,14 +36,14 @@ export async function isUserAdmin(): Promise<boolean> {
   return role === 'admin'
 }
 
-export async function isUserInstructor(): Promise<boolean> {
+export async function isUserStaff(): Promise<boolean> {
   const role = await getUserRole()
-  return role === 'instructor'
+  return role === 'staff'
 }
 
 export async function canUserManage(): Promise<boolean> {
   const role = await getUserRole()
-  return role === 'admin' || role === 'instructor'
+  return role === 'admin' || role === 'staff'
 }
 
 // Server-side version for server components

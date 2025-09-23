@@ -1,5 +1,5 @@
 -- Architecture Analysis: Supporting Tenant Schema Customization
--- When admins/instructors need to create custom fields, tables, and forms
+-- When admins/staffs need to create custom fields, tables, and forms
 
 /*
 CURRENT LIMITATIONS:
@@ -27,7 +27,7 @@ INSERT INTO programs (name, organization_id, custom_fields) VALUES (
   '{
     "difficulty_level": "advanced",
     "prerequisites": ["basic_math", "algebra"],
-    "instructor_notes": "Requires whiteboard",
+    "staff_notes": "Requires whiteboard",
     "custom_pricing": 299.99,
     "tags": ["stem", "math", "advanced"]
   }'
@@ -35,7 +35,7 @@ INSERT INTO programs (name, organization_id, custom_fields) VALUES (
 
 -- Query custom fields:
 SELECT name, custom_fields->>'difficulty_level' as difficulty
-FROM programs 
+FROM activities 
 WHERE organization_id = $1 
   AND custom_fields->>'difficulty_level' = 'advanced';
 
@@ -68,7 +68,7 @@ CREATE TABLE custom_field_values (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id),
     field_definition_id UUID NOT NULL REFERENCES custom_field_definitions(id),
-    record_id UUID NOT NULL, -- References the actual record (program_id, participant_id, etc.)
+    record_id UUID NOT NULL, -- References the actual record (activity_id, participant_id, etc.)
     value_text TEXT,
     value_number NUMERIC,
     value_date DATE,
@@ -107,7 +107,7 @@ SELECT
         CONCAT(cfd.field_name, ': ', COALESCE(cfv.value_text, cfv.value_number::text, cfv.value_date::text, cfv.value_boolean::text)), 
         ', '
     ) as custom_fields
-FROM programs p
+FROM activities p
 LEFT JOIN custom_field_values cfv ON cfv.record_id = p.id
 LEFT JOIN custom_field_definitions cfd ON cfd.id = cfv.field_definition_id
 WHERE p.organization_id = 'org-123'
@@ -143,8 +143,8 @@ CREATE TABLE tenant_org_123.programs (
 -- Custom tables created by admin
 CREATE TABLE tenant_org_123.custom_student_assessments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    student_id UUID NOT NULL,
-    program_id UUID REFERENCES tenant_org_123.programs(id),
+    participant_id UUID NOT NULL,
+    activity_id UUID REFERENCES tenant_org_123.programs(id),
     assessment_type TEXT NOT NULL,
     score NUMERIC,
     notes TEXT,
@@ -192,7 +192,7 @@ Architecture:
   // Custom fields defined by admin
   "skill_level": "advanced",
   "prerequisites": ["algebra", "geometry"],
-  "instructor_requirements": {
+  "staff_requirements": {
     "certifications": ["math_degree", "teaching_license"],
     "experience_years": 5
   },
@@ -292,7 +292,7 @@ VALUES (
             "required": true
         },
         {
-            "name": "max_students",
+            "name": "max_participants",
             "type": "number",
             "label": "Maximum Students",
             "min": 1,

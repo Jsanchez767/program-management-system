@@ -6,8 +6,8 @@ create table if not exists public.documents (
   file_url text,
   file_type text,
   file_size integer,
-  student_id uuid not null references public.profiles(id) on delete cascade,
-  program_id uuid references public.programs(id) on delete cascade,
+  participant_id uuid not null references public.profiles(id) on delete cascade,
+  activity_id uuid references public.programs(id) on delete cascade,
   document_type text not null check (document_type in ('enrollment', 'medical', 'emergency_contact', 'photo_release', 'other')) default 'other',
   status text not null check (status in ('pending', 'approved', 'rejected', 'missing')) default 'pending',
   reviewed_by uuid references public.profiles(id) on delete set null,
@@ -22,33 +22,33 @@ create table if not exists public.documents (
 alter table public.documents enable row level security;
 
 -- RLS policies for documents
-create policy "documents_select_own_or_admin_instructor"
+create policy "documents_select_own_or_admin_staff"
   on public.documents for select
   using (
-    student_id = auth.uid() or
+    participant_id = auth.uid() or
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'instructor')
+      where id = auth.uid() and role in ('admin', 'staff')
     )
   );
 
 create policy "documents_insert_own"
   on public.documents for insert
   with check (
-    student_id = auth.uid() and
+    participant_id = auth.uid() and
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and role = 'student'
+      where id = auth.uid() and role = 'participant'
     )
   );
 
 create policy "documents_update_own_or_admin"
   on public.documents for update
   using (
-    student_id = auth.uid() or
+    participant_id = auth.uid() or
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'instructor')
+      where id = auth.uid() and role in ('admin', 'staff')
     )
   );
 

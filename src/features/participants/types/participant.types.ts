@@ -26,7 +26,7 @@ export interface Participant {
 export interface ParticipantEnrollment {
   id: string
   participant_id: string
-  program_id: string
+  activity_id: string
   organization_id: string
   status: 'enrolled' | 'completed' | 'dropped' | 'waitlist'
   enrollment_date: string
@@ -56,6 +56,6 @@ export interface ParticipantFormData {
 
 export interface ParticipantFilters {
   status?: Participant['status']
-  program_id?: string
+  activity_id?: string
   search?: string
 }

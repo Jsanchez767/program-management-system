@@ -15,7 +15,7 @@ src/
 │   ├── documents/              # 📄 Document management
 │   ├── field-trips/            # 🗺️ Field trip management
 │   ├── invitations/            # ✉️ User invitations
-│   ├── lesson-plans/           # 📚 Lesson planning (instructor)
+│   ├── lesson-plans/           # 📚 Lesson planning (staff)
 │   ├── participants/           # 👥 Participant management
 │   ├── programs/               # 📚 Program management
 │   └── purchase-orders/        # 🛒 Purchase order management

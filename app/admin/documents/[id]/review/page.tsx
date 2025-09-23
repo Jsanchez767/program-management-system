@@ -29,7 +29,7 @@ export default function ReviewDocumentPage() {
           .from("documents")
           .select(`
             *,
-            student:profiles!documents_student_id_fkey(first_name, last_name, email),
+            student:profiles!documents_participant_id_fkey(first_name, last_name, email),
             program:programs(name),
             reviewer:profiles!documents_reviewed_by_fkey(first_name, last_name)
           `)

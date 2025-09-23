@@ -1,5 +1,5 @@
 // Auth/User related types
-export type UserRole = 'admin' | 'instructor' | 'student'
+export type UserRole = 'admin' | 'staff' | 'participant'
 
 export interface User {
   id: string
@@ -54,7 +54,7 @@ export interface Program {
   id: string
   name: string
   description: string
-  instructor_id: string
+  staff_id: string
   organization_id: string
   start_date: string
   end_date: string
@@ -67,8 +67,8 @@ export interface Program {
 
 export interface ProgramParticipant {
   id: string
-  program_id: string
-  student_id: string
+  activity_id: string
+  participant_id: string
   organization_id: string
   enrolled_at: string
   status: 'enrolled' | 'completed' | 'dropped'
@@ -84,9 +84,9 @@ export interface Announcement {
   content: string
   author_id: string
   organization_id: string
-  program_id?: string
+  activity_id?: string
   priority: 'low' | 'medium' | 'high'
-  target_audience: 'all' | 'instructors' | 'students'
+  target_audience: 'all' | 'staffs' | 'participants'
   published: boolean
   created_at: string
   updated_at: string
@@ -100,8 +100,8 @@ export interface Document {
   file_type: string
   file_size: number
   uploaded_by: string
-  student_id?: string
-  program_id?: string
+  participant_id?: string
+  activity_id?: string
   organization_id: string
   category: 'assignment' | 'resource' | 'certificate' | 'report' | 'other'
   is_public: boolean
@@ -117,8 +117,8 @@ export interface LessonPlan {
   id: string
   title: string
   description?: string
-  program_id: string
-  instructor_id: string
+  activity_id: string
+  staff_id: string
   organization_id: string
   date: string
   duration_minutes?: number
@@ -136,7 +136,7 @@ export interface PurchaseOrder {
   id: string
   title: string
   description?: string
-  program_id: string
+  activity_id: string
   requested_by: string
   organization_id: string
   vendor?: string
@@ -160,8 +160,8 @@ export interface FieldTrip {
   id: string
   title: string
   description?: string
-  program_id: string
-  instructor_id: string
+  activity_id: string
+  staff_id: string
   organization_id: string
   location: string
   date: string
@@ -186,7 +186,7 @@ export interface FieldTrip {
 
 // Extended types with user metadata for relations
 export interface ProgramWithInstructor extends Program {
-  instructor_metadata?: UserMetadata
+  staff_metadata?: UserMetadata
 }
 
 export interface ProgramWithParticipants extends Program {
@@ -238,7 +238,7 @@ export interface DashboardStats {
 export interface CreateProgramData {
   title: string
   description: string
-  instructor_id: string
+  staff_id: string
   start_date: string
   end_date: string
   max_participants?: number
@@ -248,9 +248,9 @@ export interface CreateProgramData {
 export interface CreateAnnouncementData {
   title: string
   content: string
-  program_id?: string
+  activity_id?: string
   priority: 'low' | 'medium' | 'high'
-  target_audience: 'all' | 'instructors' | 'students'
+  target_audience: 'all' | 'staffs' | 'participants'
   published: boolean
 }
 
@@ -260,8 +260,8 @@ export interface CreateDocumentData {
   file_path: string
   file_type: string
   file_size: number
-  student_id?: string
-  program_id?: string
+  participant_id?: string
+  activity_id?: string
   category: 'assignment' | 'resource' | 'certificate' | 'report' | 'other'
   is_public: boolean
   requires_review?: boolean
@@ -270,7 +270,7 @@ export interface CreateDocumentData {
 export interface CreateLessonPlanData {
   title: string
   description?: string
-  program_id: string
+  activity_id: string
   date: string
   duration_minutes?: number
   objectives?: string[]
@@ -283,7 +283,7 @@ export interface CreateLessonPlanData {
 export interface CreatePurchaseOrderData {
   title: string
   description?: string
-  program_id: string
+  activity_id: string
   vendor?: string
   total_amount: number
   currency: string
@@ -298,7 +298,7 @@ export interface CreatePurchaseOrderData {
 export interface CreateFieldTripData {
   title: string
   description?: string
-  program_id: string
+  activity_id: string
   location: string
   date: string
   departure_time?: string

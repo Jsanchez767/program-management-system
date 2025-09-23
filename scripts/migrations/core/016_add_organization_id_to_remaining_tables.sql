@@ -17,10 +17,10 @@ ON public.announcements(organization_id);
 UPDATE public.announcements 
 SET organization_id = (
   SELECT p.organization_id 
-  FROM programs p 
-  WHERE p.id = announcements.program_id
+  FROM activities p 
+  WHERE p.id = announcements.activity_id
 )
-WHERE organization_id IS NULL AND program_id IS NOT NULL;
+WHERE organization_id IS NULL AND activity_id IS NOT NULL;
 
 -- Add organization_id to documents table
 ALTER TABLE public.documents 
@@ -46,10 +46,10 @@ ON public.lesson_plans(organization_id);
 UPDATE public.lesson_plans 
 SET organization_id = (
   SELECT p.organization_id 
-  FROM programs p 
-  WHERE p.id = lesson_plans.program_id
+  FROM activities p 
+  WHERE p.id = lesson_plans.activity_id
 )
-WHERE organization_id IS NULL AND program_id IS NOT NULL;
+WHERE organization_id IS NULL AND activity_id IS NOT NULL;
 
 -- Add organization_id to purchase_orders table
 ALTER TABLE public.purchase_orders 
@@ -63,10 +63,10 @@ ON public.purchase_orders(organization_id);
 UPDATE public.purchase_orders 
 SET organization_id = (
   SELECT p.organization_id 
-  FROM programs p 
-  WHERE p.id = purchase_orders.program_id
+  FROM activities p 
+  WHERE p.id = purchase_orders.activity_id
 )
-WHERE organization_id IS NULL AND program_id IS NOT NULL;
+WHERE organization_id IS NULL AND activity_id IS NOT NULL;
 
 -- Add organization_id to field_trips table
 ALTER TABLE public.field_trips 
@@ -80,10 +80,10 @@ ON public.field_trips(organization_id);
 UPDATE public.field_trips 
 SET organization_id = (
   SELECT p.organization_id 
-  FROM programs p 
-  WHERE p.id = field_trips.program_id
+  FROM activities p 
+  WHERE p.id = field_trips.activity_id
 )
-WHERE organization_id IS NULL AND program_id IS NOT NULL;
+WHERE organization_id IS NULL AND activity_id IS NOT NULL;
 
 -- Add triggers to automatically set organization_id when records are inserted
 -- This ensures data consistency going forward
@@ -92,10 +92,10 @@ WHERE organization_id IS NULL AND program_id IS NOT NULL;
 CREATE OR REPLACE FUNCTION set_announcement_organization_id()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.organization_id IS NULL AND NEW.program_id IS NOT NULL THEN
+  IF NEW.organization_id IS NULL AND NEW.activity_id IS NOT NULL THEN
     SELECT organization_id INTO NEW.organization_id
-    FROM programs 
-    WHERE id = NEW.program_id;
+    FROM activities 
+    WHERE id = NEW.activity_id;
   END IF;
   RETURN NEW;
 END;
@@ -110,10 +110,10 @@ CREATE TRIGGER trigger_set_announcement_organization_id
 CREATE OR REPLACE FUNCTION set_lesson_plan_organization_id()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.organization_id IS NULL AND NEW.program_id IS NOT NULL THEN
+  IF NEW.organization_id IS NULL AND NEW.activity_id IS NOT NULL THEN
     SELECT organization_id INTO NEW.organization_id
-    FROM programs 
-    WHERE id = NEW.program_id;
+    FROM activities 
+    WHERE id = NEW.activity_id;
   END IF;
   RETURN NEW;
 END;
@@ -128,10 +128,10 @@ CREATE TRIGGER trigger_set_lesson_plan_organization_id
 CREATE OR REPLACE FUNCTION set_purchase_order_organization_id()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.organization_id IS NULL AND NEW.program_id IS NOT NULL THEN
+  IF NEW.organization_id IS NULL AND NEW.activity_id IS NOT NULL THEN
     SELECT organization_id INTO NEW.organization_id
-    FROM programs 
-    WHERE id = NEW.program_id;
+    FROM activities 
+    WHERE id = NEW.activity_id;
   END IF;
   RETURN NEW;
 END;
@@ -146,10 +146,10 @@ CREATE TRIGGER trigger_set_purchase_order_organization_id
 CREATE OR REPLACE FUNCTION set_field_trip_organization_id()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.organization_id IS NULL AND NEW.program_id IS NOT NULL THEN
+  IF NEW.organization_id IS NULL AND NEW.activity_id IS NOT NULL THEN
     SELECT organization_id INTO NEW.organization_id
-    FROM programs 
-    WHERE id = NEW.program_id;
+    FROM activities 
+    WHERE id = NEW.activity_id;
   END IF;
   RETURN NEW;
 END;

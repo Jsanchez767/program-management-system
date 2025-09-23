@@ -38,8 +38,8 @@ BENEFITS:
 CREATE TABLE analytics.enrollment_events (
     event_time DateTime64(3),
     organization_id UUID,
-    program_id UUID,
-    student_id UUID,
+    activity_id UUID,
+    participant_id UUID,
     event_type Enum('enrolled', 'completed', 'dropped'),
     enrollment_date Date,
     program_name String,
@@ -53,16 +53,16 @@ ORDER BY (organization_id, event_time);
 CREATE MATERIALIZED VIEW analytics.enrollment_stats_hourly
 ENGINE = SummingMergeTree()
 PARTITION BY toYYYYMM(hour)
-ORDER BY (organization_id, program_id, hour)
+ORDER BY (organization_id, activity_id, hour)
 AS SELECT
     organization_id,
-    program_id,
+    activity_id,
     toStartOfHour(event_time) as hour,
     countIf(event_type = 'enrolled') as enrollments,
     countIf(event_type = 'completed') as completions,
     countIf(event_type = 'dropped') as dropouts
 FROM analytics.enrollment_events
-GROUP BY organization_id, program_id, hour;
+GROUP BY organization_id, activity_id, hour;
 
 -- 3. Data sync strategies:
 
@@ -78,7 +78,7 @@ GROUP BY organization_id, program_id, hour;
 -- 4. Query patterns:
 
 -- Fast operational queries (PostgreSQL):
-SELECT * FROM programs WHERE organization_id = $1 AND status = 'active';
+SELECT * FROM activities WHERE organization_id = $1 AND status = 'active';
 
 -- Fast analytical queries (ClickHouse):
 SELECT 
@@ -98,7 +98,7 @@ ORDER BY total_enrollments DESC;
 CREATE TABLE enrollment_metrics (
     time TIMESTAMPTZ NOT NULL,
     organization_id UUID NOT NULL,
-    program_id UUID,
+    activity_id UUID,
     metric_name TEXT,
     metric_value NUMERIC
 );

@@ -16,15 +16,15 @@ DROP FUNCTION IF EXISTS public.handle_new_user_organization();
 
 -- Drop any foreign key constraints that reference profiles
 -- (Note: This will cascade to any tables that reference profiles)
-ALTER TABLE IF EXISTS programs DROP CONSTRAINT IF EXISTS programs_instructor_id_fkey;
-ALTER TABLE IF EXISTS lesson_plans DROP CONSTRAINT IF EXISTS lesson_plans_instructor_id_fkey;
+ALTER TABLE IF EXISTS programs DROP CONSTRAINT IF EXISTS programs_staff_id_fkey;
+ALTER TABLE IF EXISTS lesson_plans DROP CONSTRAINT IF EXISTS lesson_plans_staff_id_fkey;
 ALTER TABLE IF EXISTS purchase_orders DROP CONSTRAINT IF EXISTS purchase_orders_created_by_fkey;
-ALTER TABLE IF EXISTS field_trips DROP CONSTRAINT IF EXISTS field_trips_instructor_id_fkey;
+ALTER TABLE IF EXISTS field_trips DROP CONSTRAINT IF EXISTS field_trips_staff_id_fkey;
 
 -- Update foreign key constraints to reference auth.users directly
 ALTER TABLE programs 
-ADD CONSTRAINT programs_instructor_id_fkey 
-FOREIGN KEY (instructor_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+ADD CONSTRAINT programs_staff_id_fkey 
+FOREIGN KEY (staff_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 -- Disable RLS on profiles table before dropping
 ALTER TABLE IF EXISTS profiles DISABLE ROW LEVEL SECURITY;
@@ -63,12 +63,12 @@ DROP FUNCTION IF EXISTS public.handle_updated_at() CASCADE;
 
 -- Update foreign key constraints to reference auth.users directly
 ALTER TABLE programs 
-ADD CONSTRAINT programs_instructor_id_fkey 
-FOREIGN KEY (instructor_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+ADD CONSTRAINT programs_staff_id_fkey 
+FOREIGN KEY (staff_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 -- Drop any foreign key constraints that reference profiles
 -- (Note: This will cascade to any tables that reference profiles)
-ALTER TABLE IF EXISTS programs DROP CONSTRAINT IF EXISTS programs_instructor_id_fkey;
-ALTER TABLE IF EXISTS lesson_plans DROP CONSTRAINT IF EXISTS lesson_plans_instructor_id_fkey;
+ALTER TABLE IF EXISTS programs DROP CONSTRAINT IF EXISTS programs_staff_id_fkey;
+ALTER TABLE IF EXISTS lesson_plans DROP CONSTRAINT IF EXISTS lesson_plans_staff_id_fkey;
 ALTER TABLE IF EXISTS purchase_orders DROP CONSTRAINT IF EXISTS purchase_orders_created_by_fkey;
-ALTER TABLE IF EXISTS field_trips DROP CONSTRAINT IF EXISTS field_trips_instructor_id_fkey;
+ALTER TABLE IF EXISTS field_trips DROP CONSTRAINT IF EXISTS field_trips_staff_id_fkey;

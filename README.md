@@ -1,6 +1,6 @@
 # Program Management System
 
-A comprehensive multi-tenant program management system built with Next.js, Supabase, and TypeScript. Designed for educational institutions to manage programs, students, instructors, and administrative tasks with complete data isolation between organizations.
+A comprehensive multi-tenant program management system built with Next.js, Supabase, and TypeScript. Designed for educational institutions to manage programs, participants, staffs, and administrative tasks with complete data isolation between organizations.
 
 ## 🏗️ Architecture
 
@@ -14,7 +14,7 @@ A comprehensive multi-tenant program management system built with Next.js, Supab
 
 ### Admin Dashboard
 - **Program Management**: Create, edit, and manage educational programs
-- **User Management**: Oversee instructors and students
+- **User Management**: Oversee staffs and participants
 - **Document Management**: Handle enrollment forms, medical records, and other documents
 - **Analytics**: View program statistics and performance metrics
 
@@ -42,7 +42,7 @@ A comprehensive multi-tenant program management system built with Next.js, Supab
 
 The application uses a comprehensive database schema with the following main tables:
 
-- `profiles` - User profiles with role-based access (admin, instructor, student)
+- `profiles` - User profiles with role-based access (admin, staff, student)
 - `programs` - Educational program information
 - `program_participants` - Student enrollment and participation tracking
 - `announcements` - System-wide and program-specific announcements
@@ -127,7 +127,7 @@ The application uses Supabase Auth with role-based access control:
 
 - **Public routes**: Landing page, login, signup
 - **Protected routes**: All dashboard areas require authentication
-- **Role-based access**: Different interfaces for admin, instructor, and student roles
+- **Role-based access**: Different interfaces for admin, staff, and student roles
 - **Row Level Security**: Database-level security ensures users only access authorized data
 
 ## Development
@@ -137,14 +137,14 @@ The application uses Supabase Auth with role-based access control:
 ```
 ├── app/                    # Next.js app directory
 │   ├── admin/             # Admin dashboard pages
-│   ├── instructor/        # Instructor portal pages
+│   ├── staff/        # Instructor portal pages
 │   ├── student/           # Student portal pages
 │   ├── auth/              # Authentication pages
 │   └── dashboard/         # Role-based redirect logic
 ├── components/            # Reusable UI components
 │   ├── ui/               # Base UI components
 │   ├── admin/            # Admin-specific components
-│   ├── instructor/       # Instructor-specific components
+│   ├── staff/       # Instructor-specific components
 │   └── student/          # Student-specific components
 ├── lib/                  # Utility libraries
 │   ├── supabase/         # Supabase client configuration

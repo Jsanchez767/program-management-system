@@ -22,17 +22,17 @@ export default function DashboardPage() {
         }
 
         // Get user profile to determine role from user metadata
-        const userRole = user.user_metadata?.role || 'student'
+        const userRole = user.user_metadata?.role || 'participant'
 
         // Redirect based on user role
         switch (userRole) {
           case 'admin':
             router.push("/admin")
             break
-          case 'instructor':
-            router.push("/instructor")
+          case 'staff':
+            router.push("/staff")
             break
-          case 'student':
+          case 'participant':
             router.push("/student")
             break
           default:

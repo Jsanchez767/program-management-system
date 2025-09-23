@@ -7,11 +7,11 @@ export const APP_CONFIG = {
 
 export const ROLES = {
   ADMIN: 'admin',
-  INSTRUCTOR: 'instructor',
-  STUDENT: 'student'
+  STAFF: 'staff',
+  PARTICIPANT: 'participant'
 } as const
 
-export const PROGRAM_STATUS = {
+export const ACTIVITY_STATUS = {
   DRAFT: 'draft',
   ACTIVE: 'active',
   COMPLETED: 'completed',
@@ -124,7 +124,7 @@ export const ROUTES = {
   
   // Admin routes
   ADMIN_DASHBOARD: '/admin',
-  ADMIN_PROGRAMS: '/admin/programs',
+  ADMIN_ACTIVITIES: '/admin/activities',
   ADMIN_PARTICIPANTS: '/admin/participants',
   ADMIN_FIELD_TRIPS: '/admin/field-trips',
   ADMIN_PURCHASE_ORDERS: '/admin/purchase-orders',
@@ -133,16 +133,16 @@ export const ROUTES = {
   ADMIN_ANNOUNCEMENTS: '/admin/announcements',
   ADMIN_SETTINGS: '/admin/settings',
   
-  // Instructor routes
-  INSTRUCTOR_DASHBOARD: '/instructor',
-  INSTRUCTOR_PROGRAMS: '/instructor/programs',
-  INSTRUCTOR_FIELD_TRIPS: '/instructor/field-trips',
-  INSTRUCTOR_LESSON_PLANS: '/instructor/lesson-plans',
-  INSTRUCTOR_PURCHASE_ORDERS: '/instructor/purchase-orders',
+  // Staff routes
+  STAFF_DASHBOARD: '/staff',
+  STAFF_ACTIVITIES: '/staff/activities',
+  STAFF_FIELD_TRIPS: '/staff/field-trips',
+  STAFF_LESSON_PLANS: '/staff/lesson-plans',
+  STAFF_PURCHASE_ORDERS: '/staff/purchase-orders',
   
-  // Student routes
-  STUDENT_DASHBOARD: '/student',
-  STUDENT_PROGRAMS: '/student/programs',
-  STUDENT_ANNOUNCEMENTS: '/student/announcements',
-  STUDENT_DOCUMENTS: '/student/documents'
+  // Participant routes
+  PARTICIPANT_DASHBOARD: '/participant',
+  PARTICIPANT_ACTIVITIES: '/participant/activities',
+  PARTICIPANT_ANNOUNCEMENTS: '/participant/announcements',
+  PARTICIPANT_DOCUMENTS: '/participant/documents'
 } as const

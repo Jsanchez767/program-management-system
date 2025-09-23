@@ -24,7 +24,7 @@ create table if not exists public.invitations (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   email text not null,
-  role text not null check (role in ('admin', 'instructor', 'student')) default 'student',
+  role text not null check (role in ('admin', 'staff', 'participant')) default 'participant',
   status text not null check (status in ('pending', 'accepted', 'expired')) default 'pending',
   invited_by uuid not null references auth.users(id) on delete cascade,
   expires_at timestamp with time zone default (now() + interval '7 days'),

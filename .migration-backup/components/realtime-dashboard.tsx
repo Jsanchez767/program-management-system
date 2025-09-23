@@ -41,14 +41,14 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
   // Test function to create a new program (for demonstration)
   const createTestProgram = async () => {
     const { error } = await supabase
-      .from('programs')
+      .from('activities')
       .insert({
         name: `Test Program ${Date.now()}`,
         description: 'A test program created from the realtime dashboard',
         organization_id: organizationId,
         custom_fields: {
           difficulty_level: 'beginner',
-          max_students: 25
+          max_participants: 25
         }
       })
 
@@ -62,7 +62,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
       {/* Show live notification */}
       {newEnrollmentNotification && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          🎉 New enrollment in program {newEnrollmentNotification.programId}!
+          🎉 New enrollment in program {newEnrollmentNotification.activityId}!
           <small className="block text-sm">
             {newEnrollmentNotification.timestamp.toLocaleTimeString()}
           </small>
@@ -137,7 +137,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
               <p className="text-muted-foreground">No programs found.</p>
             ) : (
               programs.map((program) => (
-                <div key={program.id} className="flex items-center justify-between p-3 border rounded">
+                <div key={activity.id} className="flex items-center justify-between p-3 border rounded">
                   <div>
                     <h4 className="font-medium">{program.name}</h4>
                     <p className="text-sm text-muted-foreground">{program.description}</p>
@@ -183,7 +183,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
               enrollments.slice(0, 10).map((enrollment) => (
                 <div key={enrollment.id} className="flex items-center justify-between p-2 border rounded">
                   <div className="text-sm">
-                    Student {enrollment.student_id} enrolled in program {enrollment.program_id}
+                    Student {enrollment.participant_id} enrolled in program {enrollment.activity_id}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(enrollment.created_at).toLocaleTimeString()}

@@ -1,7 +1,7 @@
--- Create a function to get instructors by organization using user metadata
+-- Create a function to get staffs by organization using user metadata
 -- This replaces the need to query the profiles table
 
-CREATE OR REPLACE FUNCTION get_instructors_for_organization(org_id UUID)
+CREATE OR REPLACE FUNCTION get_staffs_for_organization(org_id UUID)
 RETURNS TABLE(
   id UUID,
   first_name TEXT,
@@ -20,7 +20,7 @@ BEGIN
     u.email
   FROM auth.users u
   WHERE 
-    u.raw_user_meta_data ->> 'role' = 'instructor'
+    u.raw_user_meta_data ->> 'role' = 'staff'
     AND u.raw_user_meta_data ->> 'organization_id' = org_id::text
     AND u.deleted_at IS NULL
   ORDER BY u.raw_user_meta_data ->> 'first_name';
@@ -28,4 +28,4 @@ END;
 $$;
 
 -- Grant execute permission
-GRANT EXECUTE ON FUNCTION get_instructors_for_organization(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_staffs_for_organization(UUID) TO authenticated;

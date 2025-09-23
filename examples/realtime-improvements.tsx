@@ -8,7 +8,7 @@ export function LiveAdminDashboard() {
   const user = useUser()
   const organizationId = user?.user_metadata?.organization_id
   
-  // These update automatically as students enroll/complete programs
+  // These update automatically as participants enroll/complete programs
   const liveStats = useRealtimeDashboard(organizationId)
   
   return (
@@ -61,14 +61,14 @@ export function EnrollmentNotifications() {
 // 3. COLLABORATIVE PROGRAM EDITING
 // ===========================================
 
-export function ProgramEditor({ programId }) {
-  const program = useRealtimeProgram(programId)
+export function ProgramEditor({ activityId }) {
+  const program = useRealtimeProgram(activityId)
   const [editingUsers, setEditingUsers] = useState([])
   
   // Show who else is editing this program
   useEffect(() => {
     const channel = supabase
-      .channel(`program-${programId}-presence`)
+      .channel(`program-${activityId}-presence`)
       .on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState()
         setEditingUsers(Object.values(newState))
@@ -76,7 +76,7 @@ export function ProgramEditor({ programId }) {
       .subscribe()
       
     return () => supabase.removeChannel(channel)
-  }, [programId])
+  }, [activityId])
   
   return (
     <div className="program-editor">
@@ -133,7 +133,7 @@ export function ProgramCapacityMonitor() {
   useEffect(() => {
     const nearCapacity = programs.filter(p => {
       const enrolled = p.participants?.length || 0
-      const maxStudents = p.custom_fields?.max_students || 999
+      const maxStudents = p.custom_fields?.max_participants || 999
       return enrolled / maxStudents > 0.8 // 80% capacity
     })
     
@@ -143,11 +143,11 @@ export function ProgramCapacityMonitor() {
   return (
     <div className="capacity-monitor">
       {alerts.map(program => (
-        <Alert key={program.id} type="warning">
+        <Alert key={activity.id} type="warning">
           ⚠️ {program.name} is at {Math.round(
-            (program.participants.length / program.custom_fields.max_students) * 100
+            (program.participants.length / program.custom_fields.max_participants) * 100
           )}% capacity
-          <Button onClick={() => openNewSection(program.id)}>
+          <Button onClick={() => openNewSection(activity.id)}>
             Open New Section
           </Button>
         </Alert>
@@ -160,9 +160,9 @@ export function ProgramCapacityMonitor() {
 // 6. LIVE STUDENT PROGRESS TRACKING
 // ===========================================
 
-export function StudentProgressTracker({ programId }) {
-  const participants = useRealtimeParticipants(programId)
-  const progressUpdates = useRealtimeProgressUpdates(programId)
+export function StudentProgressTracker({ activityId }) {
+  const participants = useRealtimeParticipants(activityId)
+  const progressUpdates = useRealtimeProgressUpdates(activityId)
   
   return (
     <div className="progress-tracker">
@@ -180,7 +180,7 @@ export function StudentProgressTracker({ programId }) {
             
             {/* Show live status changes */}
             {progressUpdates
-              .filter(update => update.studentId === participant.student_id)
+              .filter(update => update.participantId === participant.participant_id)
               .map(update => (
                 <RecentUpdate key={update.id}>
                   ✅ {update.activity} - {update.timestamp}

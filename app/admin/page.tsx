@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       activeAnnouncements: 0,
       pendingDocuments: 0
     },
-    recentPrograms: [] as ProgramWithInstructor[]
+    recentPrograms: [] as ProgramWithStaff[]
   })
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
               admin_id: user.id,
               settings: {
                 allow_self_registration: true,
-                default_role: 'student',
+                default_role: 'participant',
                 features: {
                   custom_fields: true,
                   analytics: true,
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
         const [statsResult, programsResult] = await Promise.all([
           supabase.rpc('get_organization_analytics', { org_id: organizationId }),
           supabase
-            .from('programs')
+            .from('activities')
             .select('*')
             .eq('organization_id', organizationId)
             .order('created_at', { ascending: false })
@@ -99,21 +99,21 @@ export default function AdminDashboard() {
         }
 
         if (programsResult.data) {
-          // Enhance programs with instructor info from user metadata
+          // Enhance programs with staff info from user metadata
           const programsWithInstructors = await Promise.all(
             programsResult.data.map(async (program) => {
-              if (program.instructor_id) {
-                // Get instructor info from auth.users via RPC
-                const { data: instructorData } = await supabase
-                  .rpc('get_instructors_for_organization', { org_id: organizationId })
+              if (program.staff_id) {
+                // Get staff info from auth.users via RPC
+                const { data: staffData } = await supabase
+                  .rpc('get_staffs_for_organization', { org_id: organizationId })
                 
-                const instructor = instructorData?.find((inst: any) => inst.id === program.instructor_id)
+                const staff = staffData?.find((inst: any) => inst.id === program.staff_id)
                 return {
                   ...program,
-                  instructor: instructor || null
+                  staff: staff || null
                 }
               }
-              return { ...program, instructor: null }
+              return { ...program, staff: null }
             })
           )
 
@@ -274,11 +274,11 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                       {recentPrograms.length > 0 ? (
                         recentPrograms.map((program: ProgramWithInstructor) => (
-                          <div key={program.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div>
                               <h3 className="font-semibold">{program.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Instructor: {program.instructor?.first_name} {program.instructor?.last_name}
+                                Instructor: {program.staff?.first_name} {program.staff?.last_name}
                               </p>
                               <p className="text-sm text-muted-foreground">
                                 Participants: {program.current_participants}

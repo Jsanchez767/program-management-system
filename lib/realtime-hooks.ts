@@ -26,8 +26,8 @@ interface Program {
 
 interface Enrollment {
   id: string
-  program_id: string
-  student_id: string
+  activity_id: string
+  participant_id: string
   organization_id: string
   status: string
   custom_data: Record<string, any>
@@ -36,8 +36,8 @@ interface Enrollment {
 
 interface EnrollmentNotification {
   id: string
-  programId: string
-  studentId: string
+  activityId: string
+  participantId: string
   timestamp: Date
 }
 
@@ -149,7 +149,7 @@ export function useRealtimePrograms(organizationId: string) {
 
   const loadPrograms = async () => {
     const { data } = await supabase
-      .from('programs')
+      .from('activities')
       .select('*')
       .eq('organization_id', organizationId)
 
@@ -184,8 +184,8 @@ export function useRealtimeEnrollments(organizationId: string) {
           // Show notification
           setNewEnrollmentNotification({
             id: payload.new.id,
-            programId: payload.new.program_id,
-            studentId: payload.new.student_id,
+            activityId: payload.new.activity_id,
+            participantId: payload.new.participant_id,
             timestamp: new Date()
           })
           
@@ -266,7 +266,7 @@ function AdminDashboard() {
     <div>
       {newEnrollmentNotification && (
         <Toast>
-          New enrollment in program {newEnrollmentNotification.programId}!
+          New enrollment in program {newEnrollmentNotification.activityId}!
         </Toast>
       )}
       

@@ -23,7 +23,7 @@ Your application has been successfully cleaned up and migrated to a **user metad
 
 ### **🔄 Updated Files:**
 - `scripts/001_create_users_only.sql` - Renamed and updated to reflect no profiles table
-- `app/admin/page.tsx` - Uses user metadata and RPC function for instructor info
+- `app/admin/page.tsx` - Uses user metadata and RPC function for staff info
 - `app/admin/programs/new/page.tsx` - Uses user metadata and RPC function
 - `app/admin/programs/page.tsx` - Uses user metadata and RPC function
 
@@ -31,7 +31,7 @@ Your application has been successfully cleaned up and migrated to a **user metad
 - **Dropped** `profiles` table completely
 - **Dropped** `handle_new_user()` trigger function
 - **Dropped** `on_auth_user_created` trigger
-- **Created** `get_instructors_for_organization()` RPC function
+- **Created** `get_staffs_for_organization()` RPC function
 - **Created** `user_profiles` view for optional easier queries
 - **Updated** foreign key constraints to reference `auth.users` directly
 
@@ -62,7 +62,7 @@ Your application has been successfully cleaned up and migrated to a **user metad
 {
   first_name: "John",
   last_name: "Doe", 
-  role: "admin" | "instructor" | "student",
+  role: "admin" | "staff" | "participant",
   organization_id: "uuid-string"
 }
 ```
@@ -76,8 +76,8 @@ const organizationId = user.data.user?.user_metadata?.organization_id
 // Database: RLS policies
 WHERE organization_id = (auth.jwt() ->> 'organization_id')::uuid
 
-// RPC Functions: For instructor queries
-SELECT * FROM get_instructors_for_organization('org-uuid')
+// RPC Functions: For staff queries
+SELECT * FROM get_staffs_for_organization('org-uuid')
 ```
 
 ## **Migration Status**
@@ -108,7 +108,7 @@ SELECT * FROM get_instructors_for_organization('org-uuid')
 016_add_organization_id_to_remaining_tables.sql # Complete organization setup
 017_add_custom_fields_jsonb.sql    # Custom fields support
 021_update_rls_for_user_metadata.sql # Final RLS updates
-022_create_instructor_metadata_function.sql # Instructor queries
+022_create_staff_metadata_function.sql # Instructor queries
 023_migrate_all_user_metadata.sql  # User data migration
 024_drop_profiles_table.sql        # Final cleanup
 ```
@@ -117,8 +117,8 @@ SELECT * FROM get_instructors_for_organization('org-uuid')
 
 1. **Restart your application** to ensure all changes are loaded
 2. **Test program creation** - Should work without profiles table
-3. **Test instructor selection** - Should load from user metadata
-4. **Test dashboard** - Should show instructor names correctly
+3. **Test staff selection** - Should load from user metadata
+4. **Test dashboard** - Should show staff names correctly
 5. **Test real-time features** - Should work seamlessly
 
 ## **System Status**

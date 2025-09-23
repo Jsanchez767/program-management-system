@@ -4,8 +4,8 @@ create table if not exists public.announcements (
   title text not null,
   content text not null,
   author_id uuid not null references public.profiles(id) on delete cascade,
-  target_audience text not null check (target_audience in ('all', 'students', 'instructors', 'program_specific')) default 'all',
-  program_id uuid references public.programs(id) on delete cascade,
+  target_audience text not null check (target_audience in ('all', 'participants', 'staffs', 'program_specific')) default 'all',
+  activity_id uuid references public.programs(id) on delete cascade,
   priority text not null check (priority in ('low', 'medium', 'high', 'urgent')) default 'medium',
   is_published boolean default false,
   published_at timestamp with time zone,
@@ -25,15 +25,15 @@ create policy "announcements_select_published"
     (expires_at is null or expires_at > now()) and
     (
       target_audience = 'all' or
-      (target_audience = 'students' and exists (
-        select 1 from public.profiles where id = auth.uid() and role = 'student'
+      (target_audience = 'participants' and exists (
+        select 1 from public.profiles where id = auth.uid() and role = 'participant'
       )) or
-      (target_audience = 'instructors' and exists (
-        select 1 from public.profiles where id = auth.uid() and role = 'instructor'
+      (target_audience = 'staffs' and exists (
+        select 1 from public.profiles where id = auth.uid() and role = 'staff'
       )) or
-      (target_audience = 'program_specific' and program_id is not null and exists (
+      (target_audience = 'program_specific' and activity_id is not null and exists (
         select 1 from public.program_participants pp
-        where pp.student_id = auth.uid() and pp.program_id = announcements.program_id
+        where pp.participant_id = auth.uid() and pp.activity_id = announcements.activity_id
       ))
     )
   );
@@ -48,13 +48,13 @@ create policy "announcements_select_own_or_admin"
     )
   );
 
-create policy "announcements_insert_admin_instructor"
+create policy "announcements_insert_admin_staff"
   on public.announcements for insert
   with check (
     auth.uid() = author_id and
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'instructor')
+      where id = auth.uid() and role in ('admin', 'staff')
     )
   );
 

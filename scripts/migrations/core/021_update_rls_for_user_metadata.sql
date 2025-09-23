@@ -34,8 +34,8 @@ CREATE POLICY "Users can view participants from their organization"
 ON participants FOR SELECT
 USING (
   EXISTS (
-    SELECT 1 FROM programs 
-    WHERE programs.id = participants.program_id 
+    SELECT 1 FROM activities 
+    WHERE activities.id = participants.activity_id 
     AND programs.organization_id = (auth.jwt() ->> 'organization_id')::uuid
   )
 );
@@ -44,8 +44,8 @@ CREATE POLICY "Users can insert participants for their organization"
 ON participants FOR INSERT
 WITH CHECK (
   EXISTS (
-    SELECT 1 FROM programs 
-    WHERE programs.id = participants.program_id 
+    SELECT 1 FROM activities 
+    WHERE activities.id = participants.activity_id 
     AND programs.organization_id = (auth.jwt() ->> 'organization_id')::uuid
   )
 );
@@ -54,15 +54,15 @@ CREATE POLICY "Users can update participants from their organization"
 ON participants FOR UPDATE
 USING (
   EXISTS (
-    SELECT 1 FROM programs 
-    WHERE programs.id = participants.program_id 
+    SELECT 1 FROM activities 
+    WHERE activities.id = participants.activity_id 
     AND programs.organization_id = (auth.jwt() ->> 'organization_id')::uuid
   )
 )
 WITH CHECK (
   EXISTS (
-    SELECT 1 FROM programs 
-    WHERE programs.id = participants.program_id 
+    SELECT 1 FROM activities 
+    WHERE activities.id = participants.activity_id 
     AND programs.organization_id = (auth.jwt() ->> 'organization_id')::uuid
   )
 );
@@ -71,8 +71,8 @@ CREATE POLICY "Users can delete participants from their organization"
 ON participants FOR DELETE
 USING (
   EXISTS (
-    SELECT 1 FROM programs 
-    WHERE programs.id = participants.program_id 
+    SELECT 1 FROM activities 
+    WHERE activities.id = participants.activity_id 
     AND programs.organization_id = (auth.jwt() ->> 'organization_id')::uuid
   )
 );

@@ -73,7 +73,7 @@ export default function AdminPurchaseOrdersPage() {
               <div>
                 <h1 className="text-3xl font-bold mb-2">Purchase Orders</h1>
                 <p className="text-muted-foreground">
-                  Review and manage purchase order requests from instructors
+                  Review and manage purchase order requests from staffs
                 </p>
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function AdminPurchaseOrdersPage() {
               <div className="col-span-full text-center py-12">
                 <p className="text-muted-foreground mb-4">No purchase orders found</p>
                 <p className="text-sm text-muted-foreground">
-                  Purchase orders from instructors will appear here
+                  Purchase orders from staffs will appear here
                 </p>
               </div>
             )}

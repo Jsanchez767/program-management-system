@@ -8,13 +8,13 @@ import { Button } from "@/shared/components/ui/button"
 import { useRouter } from "next/navigation"
 
 const navigation = [
-  { name: "Dashboard", href: "/instructor", icon: "📊" },
-  { name: "My Programs", href: "/instructor/programs", icon: "📚" },
-  { name: "Lesson Plans", href: "/instructor/lesson-plans", icon: "📅" },
-  { name: "Purchase Orders", href: "/instructor/purchase-orders", icon: "🛒" },
-  { name: "Field Trips", href: "/instructor/field-trips", icon: "🗺️" },
-  { name: "Participants", href: "/instructor/participants", icon: "👥" },
-  { name: "Documents", href: "/instructor/documents", icon: "📄" },
+  { name: "Dashboard", href: "/staff", icon: "📊" },
+  { name: "My Programs", href: "/staff/programs", icon: "📚" },
+  { name: "Lesson Plans", href: "/staff/lesson-plans", icon: "📅" },
+  { name: "Purchase Orders", href: "/staff/purchase-orders", icon: "🛒" },
+  { name: "Field Trips", href: "/staff/field-trips", icon: "🗺️" },
+  { name: "Participants", href: "/staff/participants", icon: "👥" },
+  { name: "Documents", href: "/staff/documents", icon: "📄" },
 ]
 
 export function InstructorSidebar() {

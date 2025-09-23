@@ -3,7 +3,7 @@ export interface PurchaseOrder {
   id: string
   order_number: string
   organization_id: string
-  program_id?: string
+  activity_id?: string
   vendor_name: string
   vendor_contact?: {
     email?: string
@@ -54,7 +54,7 @@ export interface PurchaseOrderFormData {
     phone?: string
     address?: string
   }
-  program_id?: string
+  activity_id?: string
   items: Omit<PurchaseOrderItem, 'id'>[]
   tax_amount?: number
   shipping_cost?: number
@@ -65,7 +65,7 @@ export interface PurchaseOrderFormData {
 
 export interface PurchaseOrderFilters {
   status?: PurchaseOrder['status']
-  program_id?: string
+  activity_id?: string
   vendor_name?: string
   date_range?: {
     start: string

@@ -1,8 +1,8 @@
--- Create lesson plans table for instructors
+-- Create lesson plans table for staffs
 create table if not exists public.lesson_plans (
   id uuid primary key default gen_random_uuid(),
-  program_id uuid not null references public.programs(id) on delete cascade,
-  instructor_id uuid not null references public.profiles(id) on delete cascade,
+  activity_id uuid not null references public.programs(id) on delete cascade,
+  staff_id uuid not null references public.profiles(id) on delete cascade,
   title text not null,
   description text,
   lesson_date date not null,
@@ -23,27 +23,27 @@ alter table public.lesson_plans enable row level security;
 create policy "lesson_plans_select_own_or_admin"
   on public.lesson_plans for select
   using (
-    instructor_id = auth.uid() or
+    staff_id = auth.uid() or
     exists (
       select 1 from public.profiles
       where id = auth.uid() and role = 'admin'
     )
   );
 
-create policy "lesson_plans_insert_own_instructor"
+create policy "lesson_plans_insert_own_staff"
   on public.lesson_plans for insert
   with check (
-    instructor_id = auth.uid() and
+    staff_id = auth.uid() and
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and role = 'instructor'
+      where id = auth.uid() and role = 'staff'
     )
   );
 
 create policy "lesson_plans_update_own_or_admin"
   on public.lesson_plans for update
   using (
-    instructor_id = auth.uid() or
+    staff_id = auth.uid() or
     exists (
       select 1 from public.profiles
       where id = auth.uid() and role = 'admin'

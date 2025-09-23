@@ -8,8 +8,8 @@ ADD COLUMN IF NOT EXISTS organization_id uuid REFERENCES public.organizations(id
 -- Step 2: Populate the organization_id from the related program
 UPDATE public.program_participants 
 SET organization_id = programs.organization_id
-FROM public.programs 
-WHERE program_participants.program_id = programs.id
+FROM public.activities 
+WHERE program_participants.activity_id = activities.id
 AND program_participants.organization_id IS NULL;
 
 -- Step 3: Make organization_id NOT NULL after population
@@ -22,10 +22,10 @@ ON public.program_participants(organization_id);
 
 -- Step 5: Create composite index for common query patterns
 CREATE INDEX IF NOT EXISTS idx_program_participants_org_program 
-ON public.program_participants(organization_id, program_id);
+ON public.program_participants(organization_id, activity_id);
 
 CREATE INDEX IF NOT EXISTS idx_program_participants_org_student 
-ON public.program_participants(organization_id, student_id);
+ON public.program_participants(organization_id, participant_id);
 
 -- Step 6: Create trigger to ensure data consistency
 -- This ensures organization_id matches the program's organization
@@ -36,8 +36,8 @@ DECLARE
 BEGIN
     -- Get the organization_id from the program
     SELECT organization_id INTO program_org_id
-    FROM public.programs 
-    WHERE id = NEW.program_id;
+    FROM public.activities 
+    WHERE id = NEW.activity_id;
     
     -- Check if the participant's organization_id matches the program's organization_id
     IF NEW.organization_id != program_org_id THEN
@@ -60,8 +60,8 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- Automatically set organization_id from the program
   SELECT organization_id INTO NEW.organization_id
-  FROM public.programs 
-  WHERE id = NEW.program_id;
+  FROM public.activities 
+  WHERE id = NEW.activity_id;
   
   IF NEW.organization_id IS NULL THEN
     RAISE EXCEPTION 'Cannot add participant: program organization_id not found';
@@ -93,21 +93,21 @@ CREATE POLICY "program_participants_insert_org_metadata"
   ON public.program_participants FOR INSERT
   WITH CHECK (
     organization_id = (auth.jwt() ->> 'organization_id')::uuid
-    AND auth.jwt() ->> 'role' IN ('admin', 'instructor')
+    AND auth.jwt() ->> 'role' IN ('admin', 'staff')
   );
 
 CREATE POLICY "program_participants_update_org_metadata"
   ON public.program_participants FOR UPDATE
   USING (
     organization_id = (auth.jwt() ->> 'organization_id')::uuid
-    AND auth.jwt() ->> 'role' IN ('admin', 'instructor')
+    AND auth.jwt() ->> 'role' IN ('admin', 'staff')
   );
 
 CREATE POLICY "program_participants_delete_org_metadata"
   ON public.program_participants FOR DELETE
   USING (
     organization_id = (auth.jwt() ->> 'organization_id')::uuid
-    AND auth.jwt() ->> 'role' IN ('admin', 'instructor')
+    AND auth.jwt() ->> 'role' IN ('admin', 'staff')
   );
 
 -- Example queries that are now much faster:
@@ -121,8 +121,8 @@ SELECT
   p.name as program_name,
   COUNT(pp.id) as participant_count,
   pp.organization_id
-FROM programs p
-LEFT JOIN program_participants pp ON p.id = pp.program_id
+FROM activities p
+LEFT JOIN participants pp ON p.id = pp.activity_id
 WHERE p.organization_id = (auth.jwt() ->> 'organization_id')::uuid
 GROUP BY p.id, p.name, pp.organization_id;
 

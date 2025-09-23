@@ -1,8 +1,8 @@
--- Create field trips table for instructors
+-- Create field trips table for staffs
 create table if not exists public.field_trips (
   id uuid primary key default gen_random_uuid(),
-  program_id uuid not null references public.programs(id) on delete cascade,
-  instructor_id uuid not null references public.profiles(id) on delete cascade,
+  activity_id uuid not null references public.programs(id) on delete cascade,
+  staff_id uuid not null references public.profiles(id) on delete cascade,
   title text not null,
   description text,
   destination text not null,
@@ -31,27 +31,27 @@ alter table public.field_trips enable row level security;
 create policy "field_trips_select_own_or_admin"
   on public.field_trips for select
   using (
-    instructor_id = auth.uid() or
+    staff_id = auth.uid() or
     exists (
       select 1 from public.profiles
       where id = auth.uid() and role = 'admin'
     )
   );
 
-create policy "field_trips_insert_own_instructor"
+create policy "field_trips_insert_own_staff"
   on public.field_trips for insert
   with check (
-    instructor_id = auth.uid() and
+    staff_id = auth.uid() and
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and role = 'instructor'
+      where id = auth.uid() and role = 'staff'
     )
   );
 
 create policy "field_trips_update_own_or_admin"
   on public.field_trips for update
   using (
-    instructor_id = auth.uid() or
+    staff_id = auth.uid() or
     exists (
       select 1 from public.profiles
       where id = auth.uid() and role = 'admin'

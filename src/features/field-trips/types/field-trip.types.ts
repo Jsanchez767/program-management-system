@@ -4,8 +4,8 @@ export interface FieldTrip {
   name: string
   description: string
   organization_id: string
-  program_id?: string
-  instructor_id: string
+  activity_id?: string
+  staff_id: string
   location: string
   date: string
   start_time: string
@@ -27,7 +27,7 @@ export interface FieldTrip {
   custom_fields: Record<string, any>
   created_at: string
   updated_at: string
-  instructor?: {
+  staff?: {
     id: string
     first_name: string
     last_name: string
@@ -57,8 +57,8 @@ export interface FieldTripParticipant {
 export interface FieldTripFormData {
   name: string
   description: string
-  program_id?: string
-  instructor_id: string
+  activity_id?: string
+  staff_id: string
   location: string
   date: string
   start_time: string
@@ -80,8 +80,8 @@ export interface FieldTripFormData {
 
 export interface FieldTripFilters {
   status?: FieldTrip['status']
-  program_id?: string
-  instructor_id?: string
+  activity_id?: string
+  staff_id?: string
   date_range?: {
     start: string
     end: string

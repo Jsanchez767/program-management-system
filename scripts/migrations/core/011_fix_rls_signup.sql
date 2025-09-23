@@ -36,15 +36,15 @@ USING (
         AND admin_profile.organization_id IS NOT NULL
       )
       OR
-      -- Instructors see students in their organization
+      -- Instructors see participants in their organization
       (
-        profiles.role = 'student'
+        profiles.role = 'participant'
         AND EXISTS (
-          SELECT 1 FROM profiles instructor_profile
-          WHERE instructor_profile.id = auth.uid() 
-          AND instructor_profile.role = 'instructor'
-          AND instructor_profile.organization_id = profiles.organization_id
-          AND instructor_profile.organization_id IS NOT NULL
+          SELECT 1 FROM profiles staff_profile
+          WHERE staff_profile.id = auth.uid() 
+          AND staff_profile.role = 'staff'
+          AND staff_profile.organization_id = profiles.organization_id
+          AND staff_profile.organization_id IS NOT NULL
         )
       )
     )

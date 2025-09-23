@@ -25,7 +25,7 @@ The program management system now uses **Supabase User Metadata** exclusively fo
 {
   first_name: string
   last_name: string
-  role: 'admin' | 'instructor' | 'student'
+  role: 'admin' | 'staff' | 'participant'
   organization_id: string  // UUID
   organization_name?: string  // Optional, for display
 }
@@ -132,7 +132,7 @@ console.log('User metadata:', user?.user_metadata)
 ### **Before (Profiles Approach):**
 ```sql
 -- RLS policy with table join (slower)
-SELECT * FROM programs 
+SELECT * FROM activities 
 WHERE organization_id IN (
   SELECT organization_id FROM profiles 
   WHERE id = auth.uid()
@@ -142,7 +142,7 @@ WHERE organization_id IN (
 ### **After (Metadata Approach):**
 ```sql
 -- RLS policy with direct JWT access (faster)
-SELECT * FROM programs 
+SELECT * FROM activities 
 WHERE organization_id = (auth.jwt() ->> 'organization_id')::uuid
 ```
 

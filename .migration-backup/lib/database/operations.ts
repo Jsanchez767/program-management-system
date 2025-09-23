@@ -89,7 +89,7 @@ export interface UserMetadata {
   email: string
   first_name?: string
   last_name?: string
-  role?: 'admin' | 'instructor' | 'student'
+  role?: 'admin' | 'staff' | 'participant'
   organization_id?: string
   organization_name?: string
 }
@@ -120,20 +120,20 @@ export async function getInstructorsByOrganization(organizationId: string): Prom
   const supabase = createClient()
   
   try {
-    // Use our RPC function to get instructors for the organization
-    const { data: instructors, error } = await supabase
-      .rpc('get_instructors_for_organization', { 
+    // Use our RPC function to get staffs for the organization
+    const { data: staffs, error } = await supabase
+      .rpc('get_staffs_for_organization', { 
         org_id: organizationId 
       } as any)
 
     if (error) {
-      console.error('Error fetching instructors:', error)
+      console.error('Error fetching staffs:', error)
       return []
     }
 
-    return instructors || []
+    return staffs || []
   } catch (error) {
-    console.error('Error fetching instructors by organization:', error)
+    console.error('Error fetching staffs by organization:', error)
     return []
   }
 }
@@ -147,7 +147,7 @@ export async function getPrograms(): Promise<Program[]> {
   
   try {
     const { data: programs } = await supabase
-      .from('programs')
+      .from('activities')
       .select(`
         *
       `)
@@ -165,7 +165,7 @@ export async function getProgramById(id: string): Promise<Program | null> {
   
   try {
     const { data: program } = await supabase
-      .from('programs')
+      .from('activities')
       .select(`
         *
       `)
@@ -183,14 +183,14 @@ export async function getProgramById(id: string): Promise<Program | null> {
 // PROGRAM PARTICIPANTS OPERATIONS
 // =============================================================================
 
-export async function getProgramParticipants(programId: string): Promise<ProgramParticipant[]> {
+export async function getProgramParticipants(activityId: string): Promise<ProgramParticipant[]> {
   const supabase = createClient()
   
   try {
     const { data: participants } = await supabase
-      .from('program_participants')
+      .from('participants')
       .select('*')
-      .eq('program_id', programId)
+      .eq('activity_id', activityId)
       .order('enrolled_at', { ascending: true })
 
     return participants || []
