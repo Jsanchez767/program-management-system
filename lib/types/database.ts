@@ -50,7 +50,7 @@ export interface OrganizationInvite {
 }
 
 // Database table interfaces - Updated to match schema with organization support
-export interface Program {
+export interface Activity {
   id: string
   name: string
   description: string
@@ -64,6 +64,9 @@ export interface Program {
   created_at: string
   updated_at: string
 }
+
+// Legacy alias for backward compatibility
+export type Program = Activity
 
 export interface ProgramParticipant {
   id: string
@@ -185,17 +188,17 @@ export interface FieldTrip {
 }
 
 // Extended types with user metadata for relations
-export interface ProgramWithInstructor extends Program {
+export interface ActivityWithInstructor extends Activity {
   staff_metadata?: UserMetadata
 }
 
-export interface ProgramWithParticipants extends Program {
+export interface ActivityWithParticipants extends Activity {
   participants?: (ProgramParticipant & { student_metadata: UserMetadata })[]
 }
 
 export interface AnnouncementWithAuthor extends Announcement {
   author_metadata: UserMetadata
-  program?: Program
+  activity?: Activity
 }
 
 export interface DocumentWithStudent extends Document {
@@ -204,22 +207,22 @@ export interface DocumentWithStudent extends Document {
 }
 
 export interface LessonPlanWithProgram extends LessonPlan {
-  program: Program
+  activity: Activity
 }
 
 export interface PurchaseOrderWithProgram extends PurchaseOrder {
-  program: Program
+  activity: Activity
   approved_by_metadata?: UserMetadata
 }
 
 export interface FieldTripWithProgram extends FieldTrip {
-  program: Program
+  activity: Activity
   approved_by_metadata?: UserMetadata
 }
 
 export interface ParticipantWithDetails extends ProgramParticipant {
   student_metadata: UserMetadata
-  program: Program
+  activity: Activity
 }
 
 // Dashboard stats types

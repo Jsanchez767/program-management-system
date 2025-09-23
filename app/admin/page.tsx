@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 import { Users, BookOpen, ShoppingCart, FileText, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import type { ProgramWithInstructor } from "@/lib/types/database"
+import type { ActivityWithInstructor } from "@/lib/types/database"
 import { useEffect, useState } from "react"
 
 // Force dynamic rendering
@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       activeAnnouncements: 0,
       pendingDocuments: 0
     },
-    recentPrograms: [] as ProgramWithInstructor[]
+    recentPrograms: [] as ActivityWithInstructor[]
   })
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
                   <CardContent>
                     <div className="space-y-4">
                       {recentPrograms.length > 0 ? (
-                        recentPrograms.map((program: ProgramWithInstructor) => (
+                        recentPrograms.map((program: ActivityWithInstructor) => (
                           <div key={program.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div>
                               <h3 className="font-semibold">{program.name}</h3>
