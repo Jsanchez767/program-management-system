@@ -1,4 +1,6 @@
 "use client"
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 import EditProgramModal from "./[id]/EditProgramModal"
 
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
@@ -12,7 +14,6 @@ import { useEffect, useState } from "react"
 import ProgramModal from "./[id]/ProgramModal"
 
 // Force dynamic rendering
-export const dynamic = 'force-dynamic'
 
 export default function AdminProgramsPage() {
   const { user } = useUser()
