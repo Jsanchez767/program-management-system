@@ -20,7 +20,7 @@ interface Staff {
   last_name: string
 }
 
-export default function NewProgramPage() {
+export default function NewActivityPage() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -128,7 +128,7 @@ export default function NewProgramPage() {
       const orgUuid = organizationId as string;
       
       // Log what we're inserting for debugging
-      console.log('Creating program with organization_id:', orgUuid);
+      console.log('Creating activity with organization_id:', orgUuid);
       console.log('User JWT data:', user.user_metadata);
 
       // Try to fetch a fresh token before insert
@@ -153,7 +153,7 @@ export default function NewProgramPage() {
       ])
 
       if (insertError) {
-        console.error('Program insert error details:', insertError);
+        console.error('Activity insert error details:', insertError);
         
         // If it's an RLS error, we'll try a more direct approach
         if (insertError.message && insertError.message.includes('new row violates row-level security policy')) {
@@ -185,7 +185,7 @@ export default function NewProgramPage() {
         throw insertError;
       }
 
-      console.log('Program created successfully!');
+      console.log('Activity created successfully!');
       router.push("/admin/activities")
     } catch (error: any) {
       setError(error.message)
@@ -212,7 +212,7 @@ export default function NewProgramPage() {
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Create New Program</h1>
+              <h1 className="text-3xl font-bold text-foreground">Create New Activity</h1>
               <p className="text-muted-foreground mt-2">Add a new educational activity to the system</p>
             </div>
           </div>
@@ -220,17 +220,17 @@ export default function NewProgramPage() {
           {/* Form */}
           <Card className="max-w-2xl">
             <CardHeader>
-              <CardTitle>Program Details</CardTitle>
+              <CardTitle>Activity Details</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Program Name *</Label>
+                  <Label htmlFor="name">Activity Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => updateFormData("name", e.target.value)}
-                    placeholder="Enter program name"
+                    placeholder="Enter activity name"
                     required
                   />
                 </div>
@@ -241,7 +241,7 @@ export default function NewProgramPage() {
                     id="description"
                     value={formData.description}
                     onChange={(e) => updateFormData("description", e.target.value)}
-                    placeholder="Describe the program objectives and activities"
+                    placeholder="Describe the activity objectives and details"
                     rows={4}
                   />
                 </div>
@@ -332,7 +332,7 @@ export default function NewProgramPage() {
 
                 <div className="flex gap-4">
                   <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Creating..." : "Create Program"}
+                    {isLoading ? "Creating..." : "Create Activity"}
                   </Button>
                   <Button type="button" variant="outline" asChild>
                     <Link href="/admin/activities">Cancel</Link>
