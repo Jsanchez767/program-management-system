@@ -16,6 +16,7 @@ import ProgramModal from "./[id]/ProgramModal"
 // Force dynamic rendering
 
 export default function AdminProgramsPage() {
+}
   const { user } = useUser()
   const organizationId = user?.user_metadata?.organization_id
   const realtimePrograms = useRealtimePrograms(organizationId || "")
@@ -73,12 +74,12 @@ export default function AdminProgramsPage() {
                       {program.description || "No description provided"}
                     </p>
                     <div className="space-y-2">
-                      {program.instructor && (
+                      {program.instructor ? (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <span className="mr-2">👤</span>
                           {program.instructor.first_name} {program.instructor.last_name}
                         </div>
-                      )}
+                      ) : null}
                       <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-2">👥</span>
                         {program.current_participants || 0} / {program.max_participants || "Unlimited"} participants
@@ -130,58 +131,4 @@ export default function AdminProgramsPage() {
                 </Card>
               </div>
             ) : null}
-                            <span className="mr-2">👤</span>
-                            {program.instructor.first_name} {program.instructor.last_name}
-                          </div>
-                        )}
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <span className="mr-2">👥</span>
-                          {program.current_participants || 0} / {program.max_participants || "Unlimited"} participants
-                        </div>
-                        {program.start_date && (
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <span className="mr-2">📅</span>
-                            {new Date(program.start_date).toLocaleDateString()}
-                            {program.end_date && ` - ${new Date(program.end_date).toLocaleDateString()}`}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex gap-2 pt-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 bg-transparent"
-                          onClick={() => {
-                            setSelectedProgramId(program.id)
-                            setModalOpen(true)
-                          }}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : isLoaded ? (
-                <div className="col-span-full">
-                  <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-12">
-                      <div className="text-center">
-                        <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
-                          <span className="text-4xl">📚</span>
-                        </div>
-                        <h3 className="text-lg font-medium text-foreground mb-2">No programs yet</h3>
-                        <p className="text-muted-foreground mb-6">
-                          Get started by creating your first educational program.
-                        </p>
-                        <Button asChild>
-                          <Link href="/admin/programs/new">
-                            <span className="mr-2">➕</span>
-                            Create Program
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null}
+          </div>
