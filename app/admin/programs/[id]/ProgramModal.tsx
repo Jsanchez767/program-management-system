@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { useRealtimePrograms } from "@/lib/realtime-hooks"
 type ProgramModalProps = {
   programId: string,
   open: boolean,
@@ -238,4 +239,3 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
 }
 
 export default ProgramModal;
-}
