@@ -1,7 +1,7 @@
-import { InstructorSidebar } from "@/components/instructor/instructor-sidebar"
+import { InstructorSidebar } from "@/shared/components/layout/InstructorSidebar"
 import { StatsCard } from "@/components/admin/stats-card"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Button } from "@/shared/components/ui/button"
 import { BookOpen, Calendar, ShoppingCart, MapPin, Plus, Clock, CheckCircle } from "lucide-react"
 import Link from "next/link"
 

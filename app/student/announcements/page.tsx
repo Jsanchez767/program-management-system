@@ -1,6 +1,6 @@
-import { StudentSidebar } from "@/components/student/student-sidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { StudentSidebar } from "@/shared/components/layout/StudentSidebar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Badge } from "@/shared/components/ui/badge"
 
 const mockAnnouncements = [
   {

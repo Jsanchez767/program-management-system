@@ -1,8 +1,8 @@
-import { StudentSidebar } from "@/components/student/student-sidebar"
+import { StudentSidebar } from "@/shared/components/layout/StudentSidebar"
 import { StatsCard } from "@/components/admin/stats-card"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Button } from "@/shared/components/ui/button"
+import { Badge } from "@/shared/components/ui/badge"
 import { BookOpen, Bell, FileText, AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react"
 import Link from "next/link"
 

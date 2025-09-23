@@ -1,7 +1,7 @@
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Button } from "@/shared/components/ui/button"
+import { Badge } from "@/shared/components/ui/badge"
 import { createClient } from "@/lib/supabase/server"
 
 async function getParticipants() {

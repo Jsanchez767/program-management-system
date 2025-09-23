@@ -3,13 +3,13 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 import EditProgramModal from "./[id]/EditProgramModal"
 
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Button } from "@/shared/components/ui/button"
+import { Badge } from "@/shared/components/ui/badge"
 import Link from "next/link"
 import { useRealtimePrograms } from "@/lib/realtime-hooks"
-import { useUser } from "@/hooks/use-user"
+import { useUser } from "@/shared/hooks/use-user"
 import { useEffect, useState } from "react"
 import ProgramModal from "./[id]/ProgramModal"
 
@@ -22,12 +22,26 @@ export default function AdminProgramsPage() {
   const [programs, setPrograms] = useState<any[]>([])
   const [hasDataLoaded, setHasDataLoaded] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [showPlaceholder, setShowPlaceholder] = useState(false)
   const isLoading = !organizationId || !hasDataLoaded || !isMounted
 
   // Ensure we're client-side before showing any content
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  // Delayed placeholder - only show after 3 seconds if no programs and data has loaded
+  useEffect(() => {
+    if (hasDataLoaded && isMounted && programs.length === 0) {
+      const timer = setTimeout(() => {
+        setShowPlaceholder(true)
+      }, 3000) // 3 second delay
+
+      return () => clearTimeout(timer)
+    } else {
+      setShowPlaceholder(false)
+    }
+  }, [hasDataLoaded, isMounted, programs.length])
 
   // Sync local programs state with realtime updates
   useEffect(() => {
@@ -133,7 +147,7 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               ))
-            ) : hasDataLoaded && isMounted ? (
+            ) : showPlaceholder ? (
               <div className="col-span-full">
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center py-12">

@@ -1,10 +1,10 @@
 "use client"
 
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
 import { StatsCard } from "@/components/admin/stats-card"
 import { RealtimeDashboard } from "@/components/realtime-dashboard"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 import { Users, BookOpen, ShoppingCart, FileText, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { ProgramWithInstructor } from "@/lib/types/database"
