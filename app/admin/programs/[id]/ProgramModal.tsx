@@ -1,7 +1,9 @@
+  // Debounce ref for input reliability
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 "use client"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState, useRef } from "react"
-import { CheckCircle, Loader2 } from "lucide-react"
+import { CheckCircle, Loader2, AlertCircle } from "lucide-react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -21,8 +23,11 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
   const programs = useRealtimePrograms(organizationId)
   const [editMode, setEditMode] = useState(false)
   const [form, setForm] = useState<any>(null)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
+  // Remove duplicate declaration, keep only one debounceRef
+  const inputBuffer = useRef({});
 
   useEffect(() => {
     if (programs && programId) {
@@ -44,7 +49,7 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
   }
 
   // Debounce save logic
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  // Already declared above, remove this line
   const lastFieldRef = useRef<string>("")
   const lastValueRef = useRef<any>("")
 
@@ -69,23 +74,27 @@ function ProgramModal({ programId, open, onOpenChange, onOptimisticUpdate, organ
   }
 
   const handleChange = (field: string, value: any) => {
-    const updated = { ...form, [field]: value }
-    setForm(updated)
-    setProgram(updated)
-    if (typeof onOptimisticUpdate === 'function') {
-      onOptimisticUpdate({ ...updated, id: programId })
-    }
-    lastFieldRef.current = field
-    lastValueRef.current = value
-    if (debounceRef.current) clearTimeout(debounceRef.current)
+  setForm((prev: any) => ({ ...prev, [field]: value }));
+    setError(null);
+    inputBuffer.current = { ...form, [field]: value };
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      saveField(lastFieldRef.current, lastValueRef.current)
-    }, 400)
+      saveField(field, value);
+    }, 400);
+  if (!form) {
+    return (
+      <div className="p-6 text-center">
+        <AlertCircle className="mx-auto mb-2 text-red-500" size={32} />
+        <div>Unable to load program details.</div>
+        <button className="mt-4 px-4 py-2 bg-gray-200 rounded" onClick={() => onOpenChange(false)}>Close</button>
+      </div>
+    );
+  }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-  <DialogContent className="max-w-2xl w-full p-0 overflow-y-auto" style={{ maxHeight: '90vh' }}>
+      <DialogContent className="max-w-2xl w-full p-0 overflow-y-auto" style={{ maxHeight: '90vh' }}>
         <Card className="p-8 rounded-xl shadow-lg border border-muted bg-background">
           <CardHeader className="pb-4 flex items-center justify-between">
             <h2 className="text-xl font-bold">Program Details</h2>
