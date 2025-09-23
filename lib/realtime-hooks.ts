@@ -24,6 +24,23 @@ interface Program {
   updated_at: string
 }
 
+// Activity interface (same as Program for now)
+interface Activity {
+  id: string
+  name: string
+  description: string
+  organization_id: string
+  custom_fields: Record<string, any>
+  created_at: string
+  updated_at: string
+  staff_id?: string
+  category?: string
+  max_participants?: number
+  start_date?: string
+  end_date?: string
+  status?: string
+}
+
 interface Enrollment {
   id: string
   activity_id: string

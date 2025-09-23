@@ -23,7 +23,7 @@ export function RealtimeDashboard() {
 
 function DashboardContent({ organizationId }: { organizationId: string }) {
   // Use our realtime hooks
-  const programs = useRealtimeActivities(organizationId)
+  const activities = useRealtimeActivities(organizationId)
   const { enrollments, newEnrollmentNotification } = useRealtimeEnrollments(organizationId)
 
   // Calculate live stats from programs and enrollments
@@ -34,8 +34,8 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
   const todayEnrollments = enrollments.filter(e => e.created_at?.slice(0, 10) === today).length
   const weekEnrollments = enrollments.filter(e => new Date(e.created_at) >= weekAgo).length
   const monthEnrollments = enrollments.filter(e => new Date(e.created_at) >= monthAgo).length
-  const activeActivities = programs.filter(
-    p => (p.status ?? 'active').toLowerCase() === 'active'
+  const activeActivities = activities.filter(
+    (activity: any) => (activity.status ?? 'active').toLowerCase() === 'active'
   ).length
 
   // Test function to create a new program (for demonstration)
@@ -136,7 +136,7 @@ function DashboardContent({ organizationId }: { organizationId: string }) {
             {activities.length === 0 ? (
               <p className="text-muted-foreground">No programs found.</p>
             ) : (
-              activities.map((program) => (
+              activities.map((activity) => (
                 <div key={activity.id} className="flex items-center justify-between p-3 border rounded">
                   <div>
                     <h4 className="font-medium">{activity.name}</h4>
