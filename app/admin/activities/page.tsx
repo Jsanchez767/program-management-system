@@ -101,7 +101,7 @@ export default function AdminProgramsPage() {
               ))
             ) : programs.length > 0 ? (
               programs.map((program: any) => (
-                <Card key={activity.id} className="hover:shadow-md transition-shadow">
+                <Card key={program.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-lg">{program.name}</CardTitle>
@@ -137,7 +137,7 @@ export default function AdminProgramsPage() {
                         size="sm"
                         className="flex-1 bg-transparent"
                         onClick={() => {
-                          setSelectedProgramId(activity.id)
+                          setSelectedProgramId(program.id)
                           setModalOpen(true)
                         }}
                       >

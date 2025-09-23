@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       activeAnnouncements: 0,
       pendingDocuments: 0
     },
-    recentPrograms: [] as ProgramWithStaff[]
+    recentPrograms: [] as ProgramWithInstructor[]
   })
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
@@ -274,15 +274,11 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                       {recentPrograms.length > 0 ? (
                         recentPrograms.map((program: ProgramWithInstructor) => (
-                          <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div key={program.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div>
                               <h3 className="font-semibold">{program.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Instructor: {program.staff?.first_name} {program.staff?.last_name}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                Participants: {program.current_participants}
-                                {program.max_participants && `/${program.max_participants}`}
+                                Staff: {program.staff_metadata?.first_name} {program.staff_metadata?.last_name}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">

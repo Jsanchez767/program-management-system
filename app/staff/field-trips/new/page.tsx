@@ -154,7 +154,7 @@ export default function NewFieldTripPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {programs.map((program) => (
-                          <SelectItem key={activity.id} value={activity.id}>
+                          <SelectItem key={program.id} value={program.id}>
                             {program.name}
                           </SelectItem>
                         ))}
