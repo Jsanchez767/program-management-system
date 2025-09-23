@@ -47,27 +47,7 @@ export default function AdminProgramsPage() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editProgramId, setEditProgramId] = useState<string | null>(null)
 
-            ) : (
-              isLoading ? null : (
-                programs && programs.length > 0 ? (
-                  programs.map((program: any) => (
-                    <Card key={program.id} className="hover:shadow-md transition-shadow">
-                      ...existing code...
-                    </Card>
-                  ))
-                ) : (
-                  isLoaded ? (
-                    <div className="col-span-full">
-                      <Card>
-                        <CardContent className="flex flex-col items-center justify-center py-12">
-                          ...existing code...
-                        </CardContent>
-                      </Card>
-                    </div>
-                  ) : null
-                )
-              )
-            )}
+// ...existing code...
 
           {/* Programs Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -79,95 +59,77 @@ export default function AdminProgramsPage() {
                   </CardContent>
                 </Card>
               ))
-            ) : (
-                programs && programs.length > 0 ? (
-                  programs.map((program: any) => (
-                    <Card key={program.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg">{program.name}</CardTitle>
-                          <Badge className={getStatusColor(program.status)}>{program.status}</Badge>
+            ) : programs && programs.length > 0 ? (
+              programs.map((program: any) => (
+                <Card key={program.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-lg">{program.name}</CardTitle>
+                      <Badge className={getStatusColor(program.status)}>{program.status}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {program.description || "No description provided"}
+                    </p>
+                    <div className="space-y-2">
+                      {program.instructor && (
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <span className="mr-2">👤</span>
+                          {program.instructor.first_name} {program.instructor.last_name}
                         </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {program.description || "No description provided"}
-                        </p>
-                        <div className="space-y-2">
-                          {program.instructor && (
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <span className="mr-2">👤</span>
-                              {program.instructor.first_name} {program.instructor.last_name}
-                            </div>
-                          )}
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <span className="mr-2">👥</span>
-                            {program.current_participants || 0} / {program.max_participants || "Unlimited"} participants
-                          </div>
-                          {program.start_date && (
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <span className="mr-2">📅</span>
-                              {new Date(program.start_date).toLocaleDateString()}
-                              {program.end_date && ` - ${new Date(program.end_date).toLocaleDateString()}`}
-                            </div>
-                          )}
-                        </div>
-                        {isLoading ? (
-                          [...Array(6)].map((_, i) => (
-                            <Card key={i} className="animate-pulse">
-                              <CardContent className="p-6">
-                                <div className="h-32 bg-muted rounded"></div>
-                              </CardContent>
-                            </Card>
-                          ))
-                        ) : programs && programs.length > 0 ? (
-                          programs.map((program: any) => (
-                            <Card key={program.id} className="hover:shadow-md transition-shadow">
-                              <CardHeader>
-                                <div className="flex items-start justify-between">
-                                  <CardTitle className="text-lg">{program.name}</CardTitle>
-                                  <Badge className={getStatusColor(program.status)}>{program.status}</Badge>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="space-y-4">
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                  {program.description || "No description provided"}
-                                </p>
-                                <div className="space-y-2">
-                                  {program.instructor && (
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                      <span className="mr-2">👤</span>
-                                      {program.instructor.first_name} {program.instructor.last_name}
-                                    </div>
-                                  )}
-                                  <div className="flex items-center text-sm text-muted-foreground">
-                                    <span className="mr-2">�</span>
-                                    {program.current_participants || 0} / {program.max_participants || "Unlimited"} participants
-                                  </div>
-                                  {program.start_date && (
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                      <span className="mr-2">📅</span>
-                                      {new Date(program.start_date).toLocaleDateString()}
-                                      {program.end_date && ` - ${new Date(program.end_date).toLocaleDateString()}`}
-                                    </div>
-                                  )}
-                                </div>
-              ) : programs && programs.length > 0 ? (
-                programs.map((program: any) => (
-                  <Card key={program.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg">{program.name}</CardTitle>
-                        <Badge className={getStatusColor(program.status)}>{program.status}</Badge>
+                      )}
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <span className="mr-2">👥</span>
+                        {program.current_participants || 0} / {program.max_participants || "Unlimited"} participants
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {program.description || "No description provided"}
+                      {program.start_date && (
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <span className="mr-2">📅</span>
+                          {new Date(program.start_date).toLocaleDateString()}
+                          {program.end_date && ` - ${new Date(program.end_date).toLocaleDateString()}`}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 bg-transparent"
+                        onClick={() => {
+                          setSelectedProgramId(program.id)
+                          setModalOpen(true)
+                        }}
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : isLoaded ? (
+              <div className="col-span-full">
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <div className="text-center">
+                      <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
+                        <span className="text-4xl">�</span>
+                      </div>
+                      <h3 className="text-lg font-medium text-foreground mb-2">No programs yet</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Get started by creating your first educational program.
                       </p>
-                      <div className="space-y-2">
-                        {program.instructor && (
-                          <div className="flex items-center text-sm text-muted-foreground">
+                      <Button asChild>
+                        <Link href="/admin/programs/new">
+                          <span className="mr-2">➕</span>
+                          Create Program
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
                             <span className="mr-2">👤</span>
                             {program.instructor.first_name} {program.instructor.last_name}
                           </div>
@@ -223,42 +185,3 @@ export default function AdminProgramsPage() {
                   </Card>
                 </div>
               ) : null}
-                                <div className="flex gap-2 pt-4">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 bg-transparent"
-                                    onClick={() => {
-                                      setSelectedProgramId(program.id)
-                                      setModalOpen(true)
-                                    }}
-                                  >
-                                    View Details
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))
-                        ) : isLoaded ? (
-                          <div className="col-span-full">
-                            <Card>
-                              <CardContent className="flex flex-col items-center justify-center py-12">
-                                <div className="text-center">
-                                  <div className="mx-auto h-12 w-12 text-muted-foreground mb-4">
-                                    <span className="text-4xl">📚</span>
-                                  </div>
-                                  <h3 className="text-lg font-medium text-foreground mb-2">No programs yet</h3>
-                                  <p className="text-muted-foreground mb-6">
-                                    Get started by creating your first educational program.
-                                  </p>
-                                  <Button asChild>
-                                    <Link href="/admin/programs/new">
-                                      <span className="mr-2">➕</span>
-                                      Create Program
-                                    </Link>
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
-                        ) : null}
