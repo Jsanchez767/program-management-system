@@ -20,7 +20,9 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
   const [program, setProgram] = useState<any>(null)
   const programs = useRealtimePrograms(organizationId)
   const [editMode, setEditMode] = useState(false)
+  // Local state for input fields, separate from saved program
   const [form, setForm] = useState<any>(null)
+  const [inputState, setInputState] = useState<any>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,6 +35,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
       const found = programs.find((p: any) => p.id === programId)
       setProgram(found || null)
       setForm(found || null)
+      setInputState(found || null)
     }
   }, [programs, programId])
 
@@ -75,11 +78,12 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
   }
 
   // Defensive: Only update form and save if form is valid
+  // Update local input state, save in background
   const handleChange = (field: string, value: any) => {
-    if (!form) return
-    setForm((prev: any) => ({ ...prev, [field]: value }))
+    if (!inputState) return
+    setInputState((prev: any) => ({ ...prev, [field]: value }))
     setError(null)
-    inputBuffer.current = { ...form, [field]: value }
+    inputBuffer.current = { ...inputState, [field]: value }
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       saveField(field, value)
@@ -89,7 +93,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
   const handleEdit = () => setEditMode(true)
   const handleCancel = () => {
     setEditMode(false)
-    setForm(program)
+    setInputState(program)
   }
 
   return (
@@ -126,7 +130,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
                     <input
                       type="text"
                       className="w-full border rounded px-3 py-2"
-                      value={form.name || ""}
+                      value={inputState?.name || ""}
                       onChange={e => handleChange('name', e.target.value)}
                       required
                     />
@@ -139,7 +143,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
                   {editMode ? (
                     <textarea
                       className="w-full border rounded px-3 py-2"
-                      value={form.description || ""}
+                      value={inputState?.description || ""}
                       onChange={e => handleChange('description', e.target.value)}
                       rows={3}
                     />
@@ -155,7 +159,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
                     <input
                       type="text"
                       className="w-full border rounded px-3 py-2"
-                      value={form.category || ""}
+                      value={inputState?.category || ""}
                       onChange={e => handleChange('category', e.target.value)}
                     />
                   ) : (
@@ -168,7 +172,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
                     <input
                       type="number"
                       className="w-full border rounded px-3 py-2"
-                      value={form.max_participants || ""}
+                      value={inputState?.max_participants || ""}
                       onChange={e => handleChange('max_participants', e.target.value)}
                       placeholder="Leave empty for unlimited"
                     />
@@ -184,7 +188,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
                     <input
                       type="date"
                       className="w-full border rounded px-3 py-2"
-                      value={form.start_date ? form.start_date.slice(0,10) : ""}
+                      value={inputState?.start_date ? inputState.start_date.slice(0,10) : ""}
                       onChange={e => handleChange('start_date', e.target.value)}
                     />
                   ) : (
@@ -197,7 +201,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
                     <input
                       type="date"
                       className="w-full border rounded px-3 py-2"
-                      value={form.end_date ? form.end_date.slice(0,10) : ""}
+                      value={inputState?.end_date ? inputState.end_date.slice(0,10) : ""}
                       onChange={e => handleChange('end_date', e.target.value)}
                     />
                   ) : (
@@ -211,7 +215,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
                   {editMode ? (
                     <select
                       className="w-full border rounded px-3 py-2"
-                      value={form.instructor_id || ""}
+                      value={inputState?.instructor_id || ""}
                       onChange={e => handleChange('instructor_id', e.target.value)}
                     >
                       <option value="">Select an instructor</option>
@@ -228,7 +232,7 @@ export default function ProgramModal({ programId, open, onOpenChange, onOptimist
                   {editMode ? (
                     <select
                       className="w-full border rounded px-3 py-2"
-                      value={form.status || ""}
+                      value={inputState?.status || ""}
                       onChange={e => handleChange('status', e.target.value)}
                     >
                       <option value="active">Active</option>
