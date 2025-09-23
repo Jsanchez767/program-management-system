@@ -36,7 +36,6 @@ export default function ProgramModal({ programId, open, onOpenChange, onEdit, or
     const updated = { ...form, [field]: value }
     setForm(updated)
     setProgram(updated)
-    if (typeof onEdit === 'function') onEdit(updated)
     // Backend auto-save
     try {
       await fetch(`/api/programs/${programId}`, {
@@ -57,8 +56,15 @@ export default function ProgramModal({ programId, open, onOpenChange, onEdit, or
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl w-full p-0">
         <Card className="p-8 rounded-xl shadow-lg border border-muted bg-background">
-          <CardHeader className="pb-4">
-            <h2 className="text-xl font-bold">Program Details</h2>
+          <CardHeader className="pb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold">Program Details</h2>
+              {editMode ? (
+                <Button variant="ghost" onClick={handleCancel}>Cancel</Button>
+              ) : (
+                <Button variant="outline" onClick={handleEdit}>Edit</Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <form className="space-y-6">
