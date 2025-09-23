@@ -1,2 +1,0 @@
-SELECT exec_sql($sql$DROP POLICY IF EXISTS "organizations_insert_admin" ON public.organizations$sql$);
-SELECT exec_sql($sql$CREATE POLICY "organizations_insert_signup_and_admin" ON public.organizations FOR INSERT WITH CHECK ((auth.jwt() ->> 'role') = 'admin' OR (auth.uid() IS NOT NULL AND (auth.jwt() ->> 'organization_id') IS NULL AND admin_id = auth.uid()))$sql$);
