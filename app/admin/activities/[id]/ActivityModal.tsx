@@ -7,7 +7,7 @@ import { Dialog, DialogContent } from "@/shared/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { useRealtimeActivities } from "@/lib/realtime-hooks"
 
-type ProgramModalProps = {
+type ActivityModalProps = {
   activityId: string,
   open: boolean,
   onOpenChange: (open: boolean) => void,
@@ -15,12 +15,12 @@ type ProgramModalProps = {
   organizationId: string
 }
 
-export default function ProgramModal({ activityId, open, onOpenChange, onOptimisticUpdate, organizationId }: ProgramModalProps) {
+export default function ActivityModal({ activityId, open, onOpenChange, onOptimisticUpdate, organizationId }: ActivityModalProps) {
   // Defensive: Only run hooks inside the function
-  const [program, setProgram] = useState<any>(null)
-  const programs = useRealtimeActivities(organizationId)
+  const [activity, setActivity] = useState<any>(null)
+  const activities = useRealtimeActivities(organizationId)
   const [editMode, setEditMode] = useState(false)
-  // Local state for input fields, separate from saved program
+  // Local state for input fields, separate from saved activity
   const [form, setForm] = useState<any>(null)
   const [inputState, setInputState] = useState<any>(null)
   const [saving, setSaving] = useState(false)
@@ -29,22 +29,22 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const inputBuffer = useRef<any>({})
 
-  // Defensive: Only update state if programs and activityId are valid
+  // Defensive: Only update state if activities and activityId are valid
   useEffect(() => {
-    if (Array.isArray(programs) && activityId) {
-      const found = programs.find((p: any) => p.id === activityId)
-      setProgram(found || null)
+    if (Array.isArray(activities) && activityId) {
+      const found = activities.find((p: any) => p.id === activityId)
+      setActivity(found || null)
       setForm(found || null)
       setInputState(found || null)
     }
-  }, [programs, activityId])
+  }, [activities, activityId])
 
-  // Show nothing while fetching program data
-  if (!program && Array.isArray(programs)) {
+  // Show nothing while fetching activity data
+  if (!activity && Array.isArray(activities)) {
     return null;
   }
-  // Show error only if programs is loaded and program is still missing
-  if (!program && Array.isArray(programs) && programs.length > 0) {
+  // Show error only if activities is loaded and activity is still missing
+  if (!activity && Array.isArray(activities) && activities.length > 0) {
     return (
       <div className="p-6 text-center">
         <AlertCircle className="mx-auto mb-2 text-red-500" size={32} />
@@ -60,7 +60,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
     setSaving(true)
     setSaved(false)
     try {
-      await fetch(`/api/programs/${activityId}`, {
+      await fetch(`/api/activities/${activityId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: value }),
@@ -93,7 +93,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
   const handleEdit = () => setEditMode(true)
   const handleCancel = () => {
     setEditMode(false)
-    setInputState(program)
+    setInputState(activity)
   }
 
   return (
@@ -135,7 +135,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
                       required
                     />
                   ) : (
-                    <div className="text-lg font-semibold">{program.name}</div>
+                    <div className="text-lg font-semibold">{activity.name}</div>
                   )}
                 </div>
                 <div>
@@ -148,7 +148,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
                       rows={3}
                     />
                   ) : (
-                    <div className="text-muted-foreground">{program.description || "No description provided"}</div>
+                    <div className="text-muted-foreground">{activity.description || "No description provided"}</div>
                   )}
                 </div>
               </div>
@@ -163,7 +163,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
                       onChange={e => handleChange('category', e.target.value)}
                     />
                   ) : (
-                    <div>{program.category || "-"}</div>
+                    <div>{activity.category || "-"}</div>
                   )}
                 </div>
                 <div>
@@ -177,7 +177,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
                       placeholder="Leave empty for unlimited"
                     />
                   ) : (
-                    <div>{program.max_participants || "Unlimited"}</div>
+                    <div>{activity.max_participants || "Unlimited"}</div>
                   )}
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
                       onChange={e => handleChange('start_date', e.target.value)}
                     />
                   ) : (
-                    <div>{program.start_date ? new Date(program.start_date).toLocaleDateString() : "-"}</div>
+                    <div>{activity.start_date ? new Date(activity.start_date).toLocaleDateString() : "-"}</div>
                   )}
                 </div>
                 <div>
@@ -205,7 +205,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
                       onChange={e => handleChange('end_date', e.target.value)}
                     />
                   ) : (
-                    <div>{program.end_date ? new Date(program.end_date).toLocaleDateString() : "-"}</div>
+                    <div>{activity.end_date ? new Date(activity.end_date).toLocaleDateString() : "-"}</div>
                   )}
                 </div>
               </div>
@@ -224,7 +224,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
                       <option value="staff2">Instructor 2</option>
                     </select>
                   ) : (
-                    <div>{program.staff_id || "-"}</div>
+                    <div>{activity.staff_id || "-"}</div>
                   )}
                 </div>
                 <div>
@@ -239,7 +239,7 @@ export default function ProgramModal({ activityId, open, onOpenChange, onOptimis
                       <option value="inactive">Inactive</option>
                     </select>
                   ) : (
-                    <div>{program.status || "-"}</div>
+                    <div>{activity.status || "-"}</div>
                   )}
                 </div>
               </div>

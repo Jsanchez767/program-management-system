@@ -99,9 +99,9 @@ export default function AdminDashboard() {
         }
 
         if (programsResult.data) {
-          // Enhance programs with staff info from user metadata
-          const programsWithInstructors = await Promise.all(
-            programsResult.data.map(async (program) => {
+          // Enhance activities with staff info from user metadata
+          const activitiesWithInstructors = await Promise.all(
+            programsResult.data.map(async (activity) => {
               if (activity.staff_id) {
                 // Get staff info from auth.users via RPC
                 const { data: staffData } = await supabase
@@ -109,17 +109,17 @@ export default function AdminDashboard() {
                 
                 const staff = staffData?.find((inst: any) => inst.id === activity.staff_id)
                 return {
-                  ...program,
+                  ...activity,
                   staff: staff || null
                 }
               }
-              return { ...program, staff: null }
+              return { ...activity, staff: null }
             })
           )
 
           setDashboardData(prev => ({
             ...prev,
-            recentActivities: programsWithInstructors
+            recentActivities: activitiesWithInstructors
           }))
         }
       } catch (error) {

@@ -156,7 +156,7 @@ export function useRealtimeActivities(organizationId: string) {
     if (data) setActivities(data)
   }
 
-  return programs
+  return activities
 }
 
 // Real-time enrollment notifications
@@ -256,8 +256,8 @@ function AdminDashboard() {
   // Real-time dashboard stats
   const stats = useRealtimeDashboard(organizationId)
   
-  // Real-time programs
-  const programs = useRealtimeActivities(organizationId)
+  // Real-time activities
+  const activities = useRealtimeActivities(organizationId)
   
   // Real-time enrollments with notifications
   const { enrollments, newEnrollmentNotification } = useRealtimeEnrollments(organizationId)
@@ -277,7 +277,7 @@ function AdminDashboard() {
         <StatCard title="Active Programs" value={stats.activeActivities} />
       </div>
       
-      <ProgramsList programs={programs} />
+      <ProgramsList programs={activities} />
       <RecentEnrollments enrollments={enrollments} />
     </div>
   )

@@ -7,18 +7,18 @@ import { Button } from "@/shared/components/ui/button"
 import { useRealtimeActivities } from "@/lib/realtime-hooks"
 import { createClient } from "@/lib/supabase/client"
 
-export default function EditProgramModal({ activityId, open, onOpenChange }: { activityId: string, open: boolean, onOpenChange: (open: boolean) => void }) {
-  const [program, setProgram] = useState<any>(null)
+export default function EditActivityModal({ activityId, open, onOpenChange }: { activityId: string, open: boolean, onOpenChange: (open: boolean) => void }) {
+  const [activity, setActivity] = useState<any>(null)
   const [form, setForm] = useState<any>({})
-  const programs = useRealtimeActivities("") // You may want to pass organizationId here
+  const activities = useRealtimeActivities("") // You may want to pass organizationId here
 
   useEffect(() => {
-    if (programs && activityId) {
-      const found = programs.find((p: any) => p.id === activityId)
-      setProgram(found)
+    if (activities && activityId) {
+      const found = activities.find((p: any) => p.id === activityId)
+      setActivity(found)
       setForm(found ? { ...found } : {})
     }
-  }, [programs, activityId])
+  }, [activities, activityId])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -44,7 +44,7 @@ export default function EditProgramModal({ activityId, open, onOpenChange }: { a
     onOpenChange(false)
   }
 
-  if (!program) return null
+  if (!activity) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
