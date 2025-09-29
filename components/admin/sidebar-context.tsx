@@ -1,24 +1,32 @@
 "use client"
 
-import { createContext, useContext } from "react"
+import React, { createContext, useContext, useState } from 'react'
 
-// Sidebar context interface
-export interface SidebarContextType {
+interface SidebarContextType {
   isCollapsed: boolean
   toggleSidebar: () => void
 }
 
-// Create the context
-export const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 
-// Custom hook to use the sidebar context
-export const useSidebar = () => {
+export function useSidebar() {
   const context = useContext(SidebarContext)
   if (!context) {
-    throw new Error('useSidebar must be used within SidebarProvider')
+    throw new Error('useSidebar must be used within a SidebarProvider')
   }
   return context
 }
 
-// Provider component for easier usage
-export const SidebarProvider = SidebarContext.Provider
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const [isCollapsed, setIsCollapsed] = useState(false)
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed)
+  }
+
+  return (
+    <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
+      {children}
+    </SidebarContext.Provider>
+  )
+}

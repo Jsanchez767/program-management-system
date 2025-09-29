@@ -32,18 +32,6 @@ export function AdminSidebar() {
 
   return (
     <>
-      {/* Desktop collapse button */}
-      <div className="hidden lg:block fixed top-4 left-4 z-50">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleSidebar}
-          className="bg-background shadow-sm"
-        >
-          {isCollapsed ? "→" : "←"}
-        </Button>
-      </div>
-
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
@@ -68,9 +56,9 @@ export function AdminSidebar() {
       <div
         className={cn(
           "relative bg-card border-r border-border transition-all duration-300 ease-in-out flex-shrink-0",
-          // Desktop behavior - not fixed, pushes content
+          // Desktop behavior - responsive width based on collapsed state
           isCollapsed ? "w-16" : "w-64",
-          // Mobile behavior - overlay
+          // Mobile behavior - overlay with transform
           "lg:block",
           isMobileMenuOpen ? "block" : "hidden lg:block"
         )}
@@ -79,13 +67,25 @@ export function AdminSidebar() {
           {/* Header */}
           <div className={cn(
             "flex items-center h-16 px-4 border-b border-border transition-all duration-300",
-            isCollapsed ? "justify-center" : "justify-center"
+            isCollapsed ? "justify-center" : "justify-between"
           )}>
             {!isCollapsed ? (
               <h1 className="text-lg font-semibold text-foreground">Admin Dashboard</h1>
             ) : (
               <span className="text-xl">⚡</span>
             )}
+            
+            {/* Desktop collapse button */}
+            <div className="hidden lg:block">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              >
+                {isCollapsed ? "→" : "←"}
+              </Button>
+            </div>
           </div>
 
           {/* Navigation */}

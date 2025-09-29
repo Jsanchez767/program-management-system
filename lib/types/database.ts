@@ -301,18 +301,17 @@ export interface CreatePurchaseOrderData {
 // Trip and Chaperone types
 export interface Trip {
   id: string
-  activity_id?: string
-  location: string
-  trip_date: string
-  return_date: string
+  name: string
+  description: string
+  destination: string
+  start_date: string
+  end_date: string
+  max_participants: number
   status: 'draft' | 'active' | 'completed' | 'cancelled'
+  admin_comments: string
   organization_id: string
   created_at: string
   updated_at: string
-  custom_fields?: any
-  comments?: string
-  pickup_time?: string
-  Return_time?: string
 }
 
 export interface Chaperone {

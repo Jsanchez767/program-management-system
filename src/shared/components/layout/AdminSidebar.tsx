@@ -14,6 +14,7 @@ const navigation = [
   { name: "Participants", href: "/admin/participants", icon: "👥" },
   { name: "Invitations", href: "/admin/invitations", icon: "✉️" },
   { name: "Purchase Orders", href: "/admin/purchase-orders", icon: "🛒" },
+  { name: "Field Trips", href: "/admin/field-trips", icon: "🗺️" },
   { name: "Documents", href: "/admin/documents", icon: "📄" },
   { name: "Announcements", href: "/admin/announcements", icon: "📢" },
   { name: "Settings", href: "/admin/settings", icon: "⚙️" },
