@@ -1,7 +1,6 @@
-import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Badge } from "@/shared/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/server"
 
 async function getParticipants() {
@@ -51,9 +50,7 @@ export default async function AdminParticipantsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminSidebar />
-      <div className="lg:pl-64">
-        <main className="p-6 lg:p-8 pt-20 lg:pt-6">
+      <main className="p-6 lg:p-8 pt-20 lg:pt-6">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
               <div>
@@ -118,7 +115,6 @@ export default async function AdminParticipantsPage() {
             </div>
           </div>
         </main>
-      </div>
     </div>
   )
 }

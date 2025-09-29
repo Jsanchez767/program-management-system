@@ -4,13 +4,12 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
-import { Label } from "@/shared/components/ui/label"
-import { Textarea } from "@/shared/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 
@@ -200,10 +199,7 @@ export default function NewActivityPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Button variant="outline" size="icon" asChild>
@@ -342,7 +338,6 @@ export default function NewActivityPage() {
             </CardContent>
           </Card>
         </main>
-      </div>
     </div>
   )
 }

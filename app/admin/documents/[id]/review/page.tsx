@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Label } from "@/shared/components/ui/label"
-import { Textarea } from "@/shared/components/ui/textarea"
-import { Badge } from "@/shared/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { createClient } from "@/lib/supabase/client"
 import { ArrowLeft, FileText, User, BookOpen, Calendar, Download, Check, X } from "lucide-react"
 import Link from "next/link"
@@ -131,17 +130,11 @@ export default function ReviewDocumentPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <AdminSidebar />
-        <div className="lg:pl-64">
-          <main className="p-6">
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading document...</p>
-              </div>
-            </div>
-          </main>
-        </div>
+        <main className="p-6">
+          <div className="text-center">
+            <p>Loading document...</p>
+          </div>
+        </main>
       </div>
     )
   }
@@ -149,26 +142,20 @@ export default function ReviewDocumentPage() {
   if (error && !document) {
     return (
       <div className="min-h-screen bg-background">
-        <AdminSidebar />
-        <div className="lg:pl-64">
-          <main className="p-6">
-            <div className="text-center">
-              <p className="text-destructive">{error}</p>
-              <Button asChild className="mt-4">
-                <Link href="/admin/documents">Back to Documents</Link>
-              </Button>
-            </div>
-          </main>
-        </div>
+        <main className="p-6">
+          <div className="text-center">
+            <p className="text-destructive">{error}</p>
+            <Button asChild className="mt-4">
+              <Link href="/admin/documents">Back to Documents</Link>
+            </Button>
+          </div>
+        </main>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminSidebar />
-
-      <div className="lg:pl-64">
         <main className="p-6">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
@@ -318,6 +305,5 @@ export default function ReviewDocumentPage() {
           </div>
         </main>
       </div>
-    </div>
   )
 }
