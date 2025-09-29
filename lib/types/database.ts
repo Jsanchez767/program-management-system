@@ -310,6 +310,7 @@ export interface Trip {
   status: 'draft' | 'active' | 'completed' | 'cancelled'
   admin_comments: string
   organization_id: string
+  activity_id: string
   created_at: string
   updated_at: string
 }
