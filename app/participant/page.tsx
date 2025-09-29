@@ -1,8 +1,7 @@
-import { ParticipantSidebar } from "@/shared/components/layout/ParticipantSidebar"
 import { StatsCard } from "@/components/admin/stats-card"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Badge } from "@/shared/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { BookOpen, Bell, FileText, AlertTriangle, Calendar, CheckCircle, Clock } from "lucide-react"
 import Link from "next/link"
 
@@ -92,10 +91,7 @@ const getPriorityColor = (priority: string) => {
 export default function StudentDashboard() {
   return (
     <div className="min-h-screen bg-background">
-      <ParticipantSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Welcome back, {mockProfile.first_name}!</h1>
@@ -226,8 +222,8 @@ export default function StudentDashboard() {
                         <p className="text-xs text-muted-foreground">
                           {new Date(announcement.published_at).toLocaleDateString()}
                         </p>
-                        {announcement.program && (
-                          <p className="text-xs text-muted-foreground">{announcement.activity.name}</p>
+                        {announcement.activity && (
+                          <p className="text-xs text-muted-foreground">{announcement.activity?.name}</p>
                         )}
                       </div>
                     </div>
@@ -275,6 +271,5 @@ export default function StudentDashboard() {
           </Card>
         </main>
       </div>
-    </div>
   )
 }

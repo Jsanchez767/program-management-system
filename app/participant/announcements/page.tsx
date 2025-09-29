@@ -1,6 +1,5 @@
-import { ParticipantSidebar } from "@/shared/components/layout/ParticipantSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 const mockAnnouncements = [
   {
@@ -52,10 +51,7 @@ export default function StudentAnnouncementsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ParticipantSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Announcements</h1>
@@ -81,7 +77,7 @@ export default function StudentAnnouncementsPage() {
                               By {announcement.author.first_name} {announcement.author.last_name}
                             </div>
                           )}
-                          {announcement.program && (
+                          {announcement.activity && (
                             <div className="flex items-center">
                               <span className="mr-1">📚</span>
                               {announcement.activity.name}
@@ -122,6 +118,5 @@ export default function StudentAnnouncementsPage() {
           </div>
         </main>
       </div>
-    </div>
   )
 }

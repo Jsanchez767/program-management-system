@@ -1,7 +1,6 @@
-import { ParticipantSidebar } from "@/shared/components/layout/ParticipantSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Badge } from "@/shared/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 const mockDocuments = [
@@ -82,10 +81,7 @@ export default function StudentDocumentsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ParticipantSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -123,7 +119,7 @@ export default function StudentDocumentsPage() {
                       <p className="text-sm text-red-600 dark:text-red-400 capitalize">
                         {doc.document_type.replace("_", " ")}
                       </p>
-                      {doc.program && (
+                      {doc.activity && (
                         <p className="text-sm text-red-600 dark:text-red-400">Program: {doc.activity.name}</p>
                       )}
                     </div>
@@ -162,8 +158,8 @@ export default function StudentDocumentsPage() {
                       <CardContent>
                         <div className="space-y-2 text-sm text-muted-foreground">
                           <p className="capitalize">{doc.document_type.replace("_", " ")}</p>
-                          {doc.program && <p>Program: {doc.activity.name}</p>}
-                          <p>Submitted: {new Date(doc.created_at).toLocaleDateString()}</p>
+                          {doc.activity && <p>Program: {doc.activity.name}</p>}
+                          <p>Submitted: {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : 'N/A'}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -194,7 +190,7 @@ export default function StudentDocumentsPage() {
                       <CardContent>
                         <div className="space-y-2 text-sm text-muted-foreground">
                           <p className="capitalize">{doc.document_type.replace("_", " ")}</p>
-                          {doc.program && <p>Program: {doc.activity.name}</p>}
+                          {doc.activity && <p>Program: {doc.activity.name}</p>}
                           {doc.reviewed_at && doc.reviewer && (
                             <p className="text-green-600 dark:text-green-400">
                               Approved by {doc.reviewer.first_name} {doc.reviewer.last_name}
@@ -230,7 +226,7 @@ export default function StudentDocumentsPage() {
                       <CardContent>
                         <div className="space-y-2 text-sm">
                           <p className="text-muted-foreground capitalize">{doc.document_type.replace("_", " ")}</p>
-                          {doc.program && <p className="text-muted-foreground">Program: {doc.activity.name}</p>}
+                          {doc.activity && <p className="text-muted-foreground">Program: {doc.activity.name}</p>}
                           {doc.notes && (
                             <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
                               <p className="text-red-700 dark:text-red-300 text-sm">
@@ -272,6 +268,5 @@ export default function StudentDocumentsPage() {
           </div>
         </main>
       </div>
-    </div>
   )
 }

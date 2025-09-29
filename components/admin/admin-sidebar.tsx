@@ -8,19 +8,19 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useSidebar } from "./sidebar-context"
 
-export interface NavigationItem {
-  name: string
-  href: string
-  icon: string
-}
+const navigation = [
+  { name: "Overview", href: "/admin", icon: "📊" },
+  { name: "Programs", href: "/admin/activities", icon: "📚" },
+  { name: "Trips", href: "/admin/trips", icon: "🚌" },
+  { name: "Participants", href: "/admin/participants", icon: "👥" },
+  { name: "Invitations", href: "/admin/invitations", icon: "✉️" },
+  { name: "Purchase Orders", href: "/admin/purchase-orders", icon: "🛒" },
+  { name: "Documents", href: "/admin/documents", icon: "📄" },
+  { name: "Announcements", href: "/admin/announcements", icon: "📢" },
+  { name: "Settings", href: "/admin/settings", icon: "⚙️" },
+]
 
-export interface SidebarProps {
-  title: string
-  navigation: NavigationItem[]
-  className?: string
-}
-
-export function UnifiedSidebar({ title, navigation, className }: SidebarProps) {
+export function AdminSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { isCollapsed, toggleSidebar } = useSidebar()
   const pathname = usePathname()
@@ -60,8 +60,7 @@ export function UnifiedSidebar({ title, navigation, className }: SidebarProps) {
           isCollapsed ? "w-16" : "w-64",
           // Mobile behavior - overlay with transform
           "lg:block",
-          isMobileMenuOpen ? "block" : "hidden lg:block",
-          className
+          isMobileMenuOpen ? "block" : "hidden lg:block"
         )}
       >
         <div className="flex flex-col h-full">
@@ -71,7 +70,7 @@ export function UnifiedSidebar({ title, navigation, className }: SidebarProps) {
             isCollapsed ? "justify-center" : "justify-between"
           )}>
             {!isCollapsed ? (
-              <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+              <h1 className="text-lg font-semibold text-foreground">Admin Dashboard</h1>
             ) : (
               <span className="text-xl">⚡</span>
             )}

@@ -1,16 +1,13 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ParticipantSidebar } from "@/shared/components/layout/ParticipantSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
-import { Label } from "@/shared/components/ui/label"
-import { Textarea } from "@/shared/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 
 const mockActivities = [
@@ -97,10 +94,7 @@ export default function UploadDocumentPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ParticipantSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Button variant="outline" size="icon" asChild>
@@ -227,6 +221,5 @@ export default function UploadDocumentPage() {
           </Card>
         </main>
       </div>
-    </div>
   )
 }

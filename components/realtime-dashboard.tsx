@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useUser } from '@/shared/hooks/use-user'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
-import { Badge } from '@/shared/components/ui/badge'
-import { Button } from '@/shared/components/ui/button'
+import { useUser } from '@/hooks/use-user'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useRealtimeDashboard, useRealtimeActivities, useRealtimeEnrollments } from '@/lib/realtime-hooks'
 import { createClient } from '@/lib/supabase/client'
 

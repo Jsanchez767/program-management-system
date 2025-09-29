@@ -1,10 +1,10 @@
 
 "use client"
 import { useEffect, useState, useRef } from "react"
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { CheckCircle, Loader2, AlertCircle } from "lucide-react"
-import { Dialog, DialogContent } from "@/shared/components/ui/dialog"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRealtimeActivities } from "@/lib/realtime-hooks"
 
 type ActivityModalProps = {
