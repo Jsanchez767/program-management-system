@@ -17,17 +17,18 @@ export const dynamic = 'force-dynamic'
 
 interface Trip {
   id: string
-  name: string
-  description: string
-  destination: string
-  start_date: string
-  end_date: string
-  max_participants: number
+  activity_id?: string
+  location: string
+  trip_date: string
+  return_date: string
   status: 'draft' | 'active' | 'completed' | 'cancelled'
-  admin_comments: string
   organization_id: string
   created_at: string
   updated_at: string
+  custom_fields?: any
+  comments?: string
+  pickup_time?: string
+  Return_time?: string
 }
 
 interface Chaperone {
@@ -47,12 +48,13 @@ export default function AdminTripsPage() {
   const [isAddingTrip, setIsAddingTrip] = useState(false)
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null)
   const [newTrip, setNewTrip] = useState({
-    name: '',
-    description: '',
-    destination: '',
-    start_date: '',
-    end_date: '',
-    max_participants: 0
+    location: '',
+    trip_date: '',
+    return_date: '',
+    pickup_time: '',
+    Return_time: '',
+    comments: '',
+    custom_fields: {}
   })
   
   const supabase = createClient()
@@ -130,38 +132,55 @@ export default function AdminTripsPage() {
 
   async function createTrip() {
     try {
+      console.log('Creating trip with data:', newTrip)
       const { data: { user } } = await supabase.auth.getUser()
       
-      if (!user?.user_metadata?.organization_id) return
+      if (!user?.user_metadata?.organization_id) {
+        console.error('No organization ID found')
+        return
+      }
+
+      const tripData = {
+        location: newTrip.location,
+        trip_date: newTrip.trip_date,
+        return_date: newTrip.return_date,
+        pickup_time: newTrip.pickup_time || null,
+        Return_time: newTrip.Return_time || null,
+        comments: newTrip.comments || null,
+        status: 'draft',
+        organization_id: user.user_metadata.organization_id,
+        custom_fields: newTrip.custom_fields || {}
+      }
+
+      console.log('Sending trip data to Supabase:', tripData)
 
       const { data, error } = await supabase
         .from('trips')
-        .insert({
-          ...newTrip,
-          organization_id: user.user_metadata.organization_id,
-          status: 'draft',
-          admin_comments: ''
-        })
+        .insert(tripData)
         .select()
         .single()
 
       if (error) {
         console.error('Error creating trip:', error)
+        alert('Error creating trip: ' + error.message)
         return
       }
 
+      console.log('Trip created successfully:', data)
       await fetchTrips()
       setIsAddingTrip(false)
       setNewTrip({
-        name: '',
-        description: '',
-        destination: '',
-        start_date: '',
-        end_date: '',
-        max_participants: 0
+        location: '',
+        trip_date: '',
+        return_date: '',
+        pickup_time: '',
+        Return_time: '',
+        comments: '',
+        custom_fields: {}
       })
     } catch (error) {
       console.error('Error:', error)
+      alert('Unexpected error: ' + error)
     }
   }
 
@@ -169,7 +188,7 @@ export default function AdminTripsPage() {
     try {
       const updateData: any = { status }
       if (comments !== undefined) {
-        updateData.admin_comments = comments
+        updateData.comments = comments
       }
 
       const { error } = await supabase
@@ -269,62 +288,61 @@ export default function AdminTripsPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name">Trip Name</Label>
+                    <Label htmlFor="location">Location</Label>
                     <Input
-                      id="name"
-                      value={newTrip.name}
-                      onChange={(e) => setNewTrip({ ...newTrip, name: e.target.value })}
-                      placeholder="Museum Field Trip"
+                      id="location"
+                      value={newTrip.location}
+                      onChange={(e) => setNewTrip({ ...newTrip, location: e.target.value })}
+                      placeholder="Science Museum"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="destination">Destination</Label>
+                    <Label htmlFor="trip_date">Trip Date</Label>
                     <Input
-                      id="destination"
-                      value={newTrip.destination}
-                      onChange={(e) => setNewTrip({ ...newTrip, destination: e.target.value })}
-                      placeholder="Science Museum"
+                      id="trip_date"
+                      type="date"
+                      value={newTrip.trip_date}
+                      onChange={(e) => setNewTrip({ ...newTrip, trip_date: e.target.value })}
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="comments">Comments</Label>
                   <Textarea
-                    id="description"
-                    value={newTrip.description}
-                    onChange={(e) => setNewTrip({ ...newTrip, description: e.target.value })}
-                    placeholder="Educational trip to explore..."
+                    id="comments"
+                    value={newTrip.comments}
+                    onChange={(e) => setNewTrip({ ...newTrip, comments: e.target.value })}
+                    placeholder="Trip details and notes..."
                   />
                 </div>
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="start_date">Start Date</Label>
+                    <Label htmlFor="return_date">Return Date</Label>
                     <Input
-                      id="start_date"
+                      id="return_date"
                       type="date"
-                      value={newTrip.start_date}
-                      onChange={(e) => setNewTrip({ ...newTrip, start_date: e.target.value })}
+                      value={newTrip.return_date}
+                      onChange={(e) => setNewTrip({ ...newTrip, return_date: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="end_date">End Date</Label>
+                    <Label htmlFor="pickup_time">Pickup Time</Label>
                     <Input
-                      id="end_date"
-                      type="date"
-                      value={newTrip.end_date}
-                      onChange={(e) => setNewTrip({ ...newTrip, end_date: e.target.value })}
+                      id="pickup_time"
+                      type="time"
+                      value={newTrip.pickup_time}
+                      onChange={(e) => setNewTrip({ ...newTrip, pickup_time: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="max_participants">Max Participants</Label>
+                    <Label htmlFor="Return_time">Return Time</Label>
                     <Input
-                      id="max_participants"
-                      type="number"
-                      value={newTrip.max_participants}
-                      onChange={(e) => setNewTrip({ ...newTrip, max_participants: parseInt(e.target.value) || 0 })}
-                      placeholder="50"
+                      id="Return_time"
+                      type="time"
+                      value={newTrip.Return_time}
+                      onChange={(e) => setNewTrip({ ...newTrip, Return_time: e.target.value })}
                     />
                   </div>
                 </div>
@@ -363,34 +381,43 @@ export default function AdminTripsPage() {
               <Card key={trip.id}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
-                    <div className="space-y-3 flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-xl font-semibold">{trip.name}</h3>
-                        <Badge className={getStatusColor(trip.status)}>
-                          {trip.status}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{trip.destination}</span>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-xl font-semibold">{trip.location}</h3>
+                          <Badge className={getStatusColor(trip.status)}>
+                            {trip.status}
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>
-                            {format(new Date(trip.start_date), 'MMM d')} - {format(new Date(trip.end_date), 'MMM d, yyyy')}
-                          </span>
+                        
+                        <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            <span>{trip.location}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            <span>
+                              {format(new Date(trip.trip_date), 'MMM d, yyyy')}
+                              {trip.return_date && trip.return_date !== trip.trip_date && 
+                                ` - ${format(new Date(trip.return_date), 'MMM d, yyyy')}`
+                              }
+                            </span>
+                          </div>
+                          {(trip.pickup_time || trip.Return_time) && (
+                            <div className="flex items-center gap-1">
+                              <span>⏰</span>
+                              <span>
+                                {trip.pickup_time && `Pickup: ${trip.pickup_time}`}
+                                {trip.pickup_time && trip.Return_time && ' | '}
+                                {trip.Return_time && `Return: ${trip.Return_time}`}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          <span>0/{trip.max_participants} participants</span>
-                        </div>
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground">{trip.description}</p>
-                      
-                      {/* Chaperones */}
+                        
+                        {trip.comments && (
+                          <p className="text-sm text-muted-foreground">{trip.comments}</p>
+                        )}                      {/* Chaperones */}
                       <div>
                         <h4 className="text-sm font-medium mb-2">Chaperones ({getChaperones(trip.id).length})</h4>
                         <div className="flex flex-wrap gap-2">
@@ -406,17 +433,7 @@ export default function AdminTripsPage() {
                       </div>
                       
                       {/* Admin Comments */}
-                      {trip.admin_comments && (
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <div className="flex items-start gap-2">
-                            <MessageSquare className="h-4 w-4 text-blue-600 mt-0.5" />
-                            <div>
-                              <p className="text-sm font-medium text-blue-900">Admin Comments</p>
-                              <p className="text-sm text-blue-700">{trip.admin_comments}</p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+
                     </div>
                     
                     <div className="ml-6 space-y-2">
