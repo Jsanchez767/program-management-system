@@ -298,6 +298,35 @@ export interface CreatePurchaseOrderData {
   }[]
 }
 
+// Trip and Chaperone types
+export interface Trip {
+  id: string
+  name: string
+  description: string
+  destination: string
+  start_date: string
+  end_date: string
+  max_participants: number
+  status: 'draft' | 'active' | 'completed' | 'cancelled'
+  admin_comments: string
+  organization_id: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Chaperone {
+  id: string
+  trip_id: string
+  staff_id: string
+  organization_id: string
+  created_at: string
+  profiles?: {
+    first_name?: string
+    last_name?: string
+    email?: string
+  }
+}
+
 export interface CreateFieldTripData {
   title: string
   description?: string

@@ -1,320 +1,284 @@
 "use client"
 
-import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
-import { StatsCard } from "@/components/admin/stats-card"
-import { RealtimeDashboard } from "@/components/realtime-dashboard"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { Users, BookOpen, ShoppingCart, FileText, TrendingUp, Clock, CheckCircle, AlertCircle } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
-import type { ActivityWithInstructor } from "@/lib/types/database"
 import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Badge } from "@/shared/components/ui/badge"
+import { Button } from "@/shared/components/ui/button"
+import { Calendar, Users, TrendingUp, Activity, Plus } from "lucide-react"
+import Link from "next/link"
 
-// Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
+interface DashboardStats {
+  totalActivities: number
+  activeActivities: number
+  totalParticipants: number
+  todayEnrollments: number
+}
+
+interface RecentActivity {
+  id: string
+  name: string
+  description: string
+  status: string
+  created_at: string
+  category: string
+  participant_count?: number
+  max_participants?: number
+  staff_name?: string
+}
+
 export default function AdminDashboard() {
-  const [dashboardData, setDashboardData] = useState({
-    stats: {
-      totalActivities: 0,
-      totalParticipants: 0,
-      activeAnnouncements: 0,
-      pendingDocuments: 0
-    },
-    recentActivities: [] as ActivityWithInstructor[]
+  const [stats, setStats] = useState<DashboardStats>({
+    totalActivities: 0,
+    activeActivities: 0,
+    totalParticipants: 0,
+    todayEnrollments: 0
   })
-  const [isLoading, setIsLoading] = useState(true)
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
+  const [loading, setLoading] = useState(true)
+  
   const supabase = createClient()
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        
-        // Get organization_id from user metadata only
-        let organizationId = user?.user_metadata?.organization_id
-        
-        // If user has no organization_id in metadata, create a default organization
-        if (!organizationId) {
-          console.log('No organization found in user metadata, creating unique organization')
-          
-          // Create a unique organization for this user
-          const userEmail = user.email || 'user'
-          const orgName = `${user.user_metadata?.first_name || 'User'}'s Organization`
-          const orgDomain = `${userEmail.split('@')[0]}-${Date.now()}.local`
-          
-          const { data: newOrg, error: orgError } = await supabase
-            .from('organizations')
-            .insert({
-              name: orgName,
-              domain: orgDomain,
-              admin_id: user.id,
-              settings: {
-                allow_self_registration: true,
-                default_role: 'participant',
-                features: {
-                  custom_fields: true,
-                  analytics: true,
-                  realtime: true
-                }
-              }
-            })
-            .select()
-            .single()
+    fetchDashboardData()
+  }, [])
 
-          if (!orgError && newOrg) {
-            organizationId = newOrg.id
-
-            // Update user metadata with organization_id
-            await supabase.auth.updateUser({
-              data: {
-                ...user.user_metadata,
-                organization_id: organizationId,
-                role: user.user_metadata?.role || 'admin' // Ensure role is set
-              }
-            })
-
-            console.log('✅ Default organization created and assigned to user metadata')
-          }
-        }
-        
-        if (!organizationId) return
-
-        const [statsResult, programsResult] = await Promise.all([
-          supabase.rpc('get_organization_analytics', { org_id: organizationId }),
-          supabase
-            .from('activities')
-            .select('*')
-            .eq('organization_id', organizationId)
-            .order('created_at', { ascending: false })
-            .limit(5)
-        ])
-
-        if (statsResult.data) {
-          setDashboardData(prev => ({
-            ...prev,
-            stats: statsResult.data
-          }))
-        }
-
-        if (programsResult.data) {
-          // Enhance activities with staff info from user metadata
-          const activitiesWithInstructors = await Promise.all(
-            programsResult.data.map(async (activity) => {
-              if (activity.staff_id) {
-                // Get staff info from auth.users via RPC
-                const { data: staffData } = await supabase
-                  .rpc('get_staffs_for_organization', { org_id: organizationId })
-                
-                const staff = staffData?.find((inst: any) => inst.id === activity.staff_id)
-                return {
-                  ...activity,
-                  staff: staff || null
-                }
-              }
-              return { ...activity, staff: null }
-            })
-          )
-
-          setDashboardData(prev => ({
-            ...prev,
-            recentActivities: activitiesWithInstructors
-          }))
-        }
-      } catch (error) {
-        console.error('Error loading dashboard data:', error)
-      } finally {
-        setIsLoading(false)
+  async function fetchDashboardData() {
+    try {
+      setLoading(true)
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user?.user_metadata?.organization_id) {
+        console.log("No organization ID found")
+        return
       }
+
+      const organizationId = user.user_metadata.organization_id
+
+      const { data: activities, error: activitiesError } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('organization_id', organizationId)
+
+      if (activitiesError) {
+        console.error('Error fetching activities:', activitiesError)
+        return
+      }
+
+      const totalActivities = activities?.length || 0
+      const activeActivities = activities?.filter(a => a.status === 'active').length || 0
+      
+      const recentActivitiesData = activities
+        ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        ?.slice(0, 5)
+        ?.map(activity => ({
+          id: activity.id,
+          name: activity.name,
+          description: activity.description || '',
+          status: activity.status,
+          created_at: activity.created_at,
+          category: activity.category || 'General',
+          max_participants: activity.max_participants,
+          staff_name: 'Not assigned'
+        })) || []
+
+      setStats({
+        totalActivities,
+        activeActivities,
+        totalParticipants: 0,
+        todayEnrollments: 0
+      })
+      
+      setRecentActivities(recentActivitiesData)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    loadData()
-  }, [supabase])
+  function getStatusColor(status: string) {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800'
+      case 'draft': return 'bg-gray-100 text-gray-800'
+      case 'archived': return 'bg-red-100 text-red-800'
+      default: return 'bg-blue-100 text-blue-800'
+    }
+  }
 
-  const { stats, recentActivities } = dashboardData
+  function formatDate(dateString: string) {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  if (loading) {
+    return (
+      <main className="p-6 lg:p-8 pt-20 lg:pt-6">
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Welcome to the program management system admin dashboard</p>
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-16 bg-muted rounded"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AdminSidebar />
-      <div className="lg:pl-64">
-        <main className="p-6 lg:p-8 pt-20 lg:pt-6">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome to the program management system admin dashboard
-            </p>
+    <main className="p-6 lg:p-8 pt-20 lg:pt-6">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Welcome to the program management system admin dashboard</p>
           </div>
-          {/* Tabs for different dashboard views */}
-          <Tabs defaultValue="realtime" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="realtime">🔴 Live Dashboard</TabsTrigger>
-              <TabsTrigger value="legacy">📊 Legacy Dashboard</TabsTrigger>
-            </TabsList>
-            <TabsContent value="realtime" className="space-y-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-muted-foreground">
-                  Live updates enabled - Data streams in real-time
-                </span>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/admin/trips">
+                <Activity className="h-4 w-4 mr-2" />
+                Trips
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/admin/field-trips">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Field Trips
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-green-600">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          Live updates enabled - Data streams in real-time
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Today&apos;s Enrollments</CardTitle>
+              <Badge variant="secondary" className="text-xs">Live</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.todayEnrollments}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Week</CardTitle>
+              <Badge variant="secondary" className="text-xs">Live</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+              <Badge variant="secondary" className="text-xs">Live</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">0</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Activities</CardTitle>
+              <Badge variant="secondary" className="text-xs">Live</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.activeActivities}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                Activities
+                <Badge variant="secondary" className="text-xs">Live Updates</Badge>
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                This list updates in real-time as activities are added, modified, or removed.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin/activities">
+                <Plus className="h-4 w-4 mr-1" />
+                View All Activities
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {recentActivities.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No activities yet. Create your first activity to see live updates in action!
               </div>
-              <RealtimeDashboard />
-            </TabsContent>
-            <TabsContent value="legacy" className="space-y-6">
-              {/* Stats Grid */}
-              {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  {[...Array(4)].map((_, i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardContent className="p-6">
-                        <div className="h-16 bg-muted rounded"></div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <StatsCard
-                    title="Total Activities"
-                    value={stats.totalActivities}
-                    icon={BookOpen}
-                    trend={{ value: 12, isPositive: true }}
-                  />
-                  <StatsCard
-                    title="Total Participants"
-                    value={stats.totalParticipants}
-                    icon={TrendingUp}
-                    trend={{ value: 8, isPositive: true }}
-                  />
-                  <StatsCard
-                    title="Active Announcements"
-                    value={stats.activeAnnouncements}
-                    icon={Users}
-                    trend={{ value: 15, isPositive: true }}
-                  />
-                  <StatsCard
-                    title="Pending Documents"
-                    value={stats.pendingDocuments}
-                    icon={Clock}
-                    trend={{ value: 5, isPositive: false }}
-                  />
-                </div>
-              )}
-              {isLoading ? (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {[...Array(2)].map((_, i) => (
-                      <Card key={i} className="animate-pulse">
-                        <CardContent className="p-6">
-                          <div className="h-24 bg-muted rounded"></div>
-                        </CardContent>
-                      </Card>
-                    ))}
+            ) : (
+              recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">{activity.name}</h3>
+                      <Badge className={getStatusColor(activity.status)}>
+                        {activity.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-1">
+                      {activity.description || 'No description provided'}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>Category: {activity.category}</span>
+                      <span>Staff: {activity.staff_name}</span>
+                      <span>{formatDate(activity.created_at)}</span>
+                    </div>
                   </div>
-                  <Card className="animate-pulse">
-                    <CardContent className="p-6">
-                      <div className="h-32 bg-muted rounded"></div>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    {/* Quick Stats */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <ShoppingCart className="h-5 w-5" />
-                          Purchase Orders
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span>Pending Documents</span>
-                            <span className="font-semibold">{stats.pendingDocuments}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            <p className="text-sm text-muted-foreground">{stats.pendingDocuments} need review</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    {/* Documents */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          Documents
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span>Pending Review</span>
-                            <span className="font-semibold">{stats.pendingDocuments}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">
+                      Participants: {activity.max_participants ? `0/${activity.max_participants}` : '0/∞'}
+                    </div>
                   </div>
-                  {/* Recent Activities */}
-                  <Card className="mb-8">
-                    <CardHeader>
-                      <CardTitle>Recent Activities</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {recentActivities.length > 0 ? (
-                          recentActivities.map((activity: ActivityWithInstructor) => (
-                            <div key={activity.id} className="flex items-center justify-between p-4 border rounded-lg">
-                              <div>
-                                <h3 className="font-semibold">{activity.name}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                  Staff: {activity.staff_metadata?.first_name} {activity.staff_metadata?.last_name}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  activity.status === 'active' ? 'bg-green-100 text-green-800' :
-                                  activity.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {activity.status}
-                                </span>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted-foreground text-center py-8">No programs found</p>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  {/* Alerts */}
-                  {stats.pendingDocuments > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <AlertCircle className="h-5 w-5 text-orange-500" />
-                          Action Required
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2 text-sm">
-                          {stats.pendingDocuments > 0 && (
-                            <p>• {stats.pendingDocuments} documents need review</p>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
-              )}
-            </TabsContent>
-          </Tabs>
-        </main>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Recent Enrollments
+              <Badge variant="secondary" className="text-xs">Live Updates</Badge>
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              New enrollments appear here instantly as they happen.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-muted-foreground">
+              No recent enrollments.
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </main>
   )
 }
