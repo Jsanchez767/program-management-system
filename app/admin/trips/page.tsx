@@ -29,6 +29,20 @@ interface Trip {
   comments?: string
   pickup_time?: string
   Return_time?: string
+  activities?: {
+    id: string
+    name: string
+    description?: string
+    category?: string
+  }
+}
+
+interface Program {
+  id: string
+  name: string
+  description?: string
+  category?: string
+  status: string
 }
 
 interface Chaperone {
@@ -43,11 +57,13 @@ interface Chaperone {
 
 export default function AdminTripsPage() {
   const [trips, setTrips] = useState<Trip[]>([])
+  const [programs, setPrograms] = useState<Program[]>([])
   const [chaperones, setChaperones] = useState<Chaperone[]>([])
   const [loading, setLoading] = useState(true)
   const [isAddingTrip, setIsAddingTrip] = useState(false)
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null)
   const [newTrip, setNewTrip] = useState({
+    activity_id: '',
     location: '',
     trip_date: '',
     return_date: '',
@@ -61,7 +77,40 @@ export default function AdminTripsPage() {
 
   useEffect(() => {
     fetchTrips()
+    fetchPrograms()
     fetchChaperones()
+    
+    // Set up real-time subscription for trips
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.user_metadata?.organization_id) {
+        const channel = supabase
+          .channel('trips-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'trips',
+              filter: `organization_id=eq.${user.user_metadata.organization_id}`
+            },
+            () => {
+              fetchTrips() // Refetch trips when changes occur
+            }
+          )
+          .subscribe()
+
+        return () => {
+          supabase.removeChannel(channel)
+        }
+      }
+    }
+    
+    const cleanup = setupRealtimeSubscription()
+    
+    return () => {
+      cleanup?.then(cleanupFn => cleanupFn?.())
+    }
   }, [])
 
   async function fetchTrips() {
@@ -76,7 +125,15 @@ export default function AdminTripsPage() {
 
       const { data: tripsData, error } = await supabase
         .from('trips')
-        .select('*')
+        .select(`
+          *,
+          activities:activity_id (
+            id,
+            name,
+            description,
+            category
+          )
+        `)
         .eq('organization_id', user.user_metadata.organization_id)
         .order('created_at', { ascending: false })
 
@@ -130,6 +187,30 @@ export default function AdminTripsPage() {
     }
   }
 
+  async function fetchPrograms() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user?.user_metadata?.organization_id) return
+
+      const { data: programsData, error } = await supabase
+        .from('activities')
+        .select('id, name, description, category, status')
+        .eq('organization_id', user.user_metadata.organization_id)
+        .eq('status', 'active')
+        .order('name', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching programs:', error)
+        return
+      }
+
+      setPrograms(programsData || [])
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   async function createTrip() {
     try {
       console.log('Creating trip with data:', newTrip)
@@ -141,6 +222,7 @@ export default function AdminTripsPage() {
       }
 
       const tripData = {
+        activity_id: newTrip.activity_id || null,
         location: newTrip.location,
         trip_date: newTrip.trip_date,
         return_date: newTrip.return_date,
@@ -170,6 +252,7 @@ export default function AdminTripsPage() {
       await fetchTrips()
       setIsAddingTrip(false)
       setNewTrip({
+        activity_id: '',
         location: '',
         trip_date: '',
         return_date: '',
@@ -286,6 +369,26 @@ export default function AdminTripsPage() {
                 <DialogTitle>Add New Trip</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                <div>
+                  <Label htmlFor="activity_id">Select Program</Label>
+                  <Select value={newTrip.activity_id} onValueChange={(value) => setNewTrip({ ...newTrip, activity_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a program for this trip" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {programs.length === 0 ? (
+                        <SelectItem value="" disabled>No active programs available</SelectItem>
+                      ) : (
+                        programs.map((program) => (
+                          <SelectItem key={program.id} value={program.id}>
+                            {program.name} {program.category && `(${program.category})`}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="location">Location</Label>
@@ -388,6 +491,21 @@ export default function AdminTripsPage() {
                             {trip.status}
                           </Badge>
                         </div>
+                        
+                        {/* Program Information */}
+                        {trip.activities && (
+                          <div className="bg-blue-50 p-2 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-blue-900">Program:</span>
+                              <span className="text-sm text-blue-700">{trip.activities.name}</span>
+                              {trip.activities.category && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {trip.activities.category}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
                         
                         <div className="flex items-center gap-6 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
