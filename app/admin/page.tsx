@@ -146,7 +146,20 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <p className="text-muted-foreground">Welcome to the program management system admin dashboard</p>
           </div>
-
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/admin/trips">
+                <Activity className="h-4 w-4 mr-2" />
+                Trips
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/admin/trips">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Field Trips
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 text-sm text-green-600">

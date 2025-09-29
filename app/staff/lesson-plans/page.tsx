@@ -1,4 +1,3 @@
-import { StaffSidebar } from "@/shared/components/layout/StaffSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
@@ -45,10 +44,7 @@ export default function InstructorLessonPlansPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <StaffSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -82,7 +78,7 @@ export default function InstructorLessonPlansPage() {
                     <div className="space-y-2">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-2">📚</span>
-                        {plan.program?.name || "No program assigned"}
+                        {plan.activity?.name || "No activity assigned"}
                       </div>
 
                       <div className="flex items-center text-sm text-muted-foreground">
@@ -149,7 +145,6 @@ export default function InstructorLessonPlansPage() {
             )}
           </div>
         </main>
-      </div>
     </div>
   )
 }

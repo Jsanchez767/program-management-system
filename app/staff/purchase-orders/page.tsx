@@ -1,4 +1,3 @@
-import { StaffSidebar } from "@/shared/components/layout/StaffSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
@@ -53,10 +52,7 @@ export default function InstructorPurchaseOrdersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <StaffSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -90,7 +86,7 @@ export default function InstructorPurchaseOrdersPage() {
                     <div className="space-y-2">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <span className="mr-2">📚</span>
-                        {order.program?.name || "No program assigned"}
+                        {order.activity?.name || "No activity assigned"}
                       </div>
 
                       {order.vendor && (
@@ -155,7 +151,6 @@ export default function InstructorPurchaseOrdersPage() {
             )}
           </div>
         </main>
-      </div>
     </div>
   )
 }

@@ -1,4 +1,3 @@
-import { StaffSidebar } from "@/shared/components/layout/StaffSidebar"
 import { StatsCard } from "@/components/admin/stats-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
@@ -35,10 +34,7 @@ const mockRecentLessonPlans = [
 export default function InstructorDashboard() {
   return (
     <div className="min-h-screen bg-background">
-      <StaffSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Welcome back, {mockProfile.first_name}!</h1>
@@ -96,7 +92,7 @@ export default function InstructorDashboard() {
                   </Link>
                 </Button>
                 <Button asChild className="w-full justify-start bg-transparent" variant="outline">
-                  <Link href="/staff/field-trips/new">
+                  <Link href="/staff/trips/new">
                     <MapPin className="mr-2 h-4 w-4" />
                     Request Field Trip
                   </Link>
@@ -163,7 +159,6 @@ export default function InstructorDashboard() {
             </Card>
           </div>
         </main>
-      </div>
     </div>
   )
 }

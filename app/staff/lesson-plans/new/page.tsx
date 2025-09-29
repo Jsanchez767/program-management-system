@@ -4,13 +4,12 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { StaffSidebar } from "@/shared/components/layout/StaffSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
-import { Label } from "@/shared/components/ui/label"
-import { Textarea } from "@/shared/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
 import { ArrowLeft, Plus, X } from "lucide-react"
 import Link from "next/link"
@@ -122,10 +121,7 @@ export default function NewLessonPlanPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <StaffSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Button variant="outline" size="icon" asChild>
@@ -160,7 +156,7 @@ export default function NewLessonPlanPage() {
                         <SelectValue placeholder="Select a program" />
                       </SelectTrigger>
                       <SelectContent>
-                        {activities.map((program) => (
+                        {activities.map((activity) => (
                           <SelectItem key={activity.id} value={activity.id}>
                             {activity.name}
                           </SelectItem>
@@ -321,7 +317,6 @@ export default function NewLessonPlanPage() {
             </CardContent>
           </Card>
         </main>
-      </div>
     </div>
   )
 }

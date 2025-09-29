@@ -1,7 +1,6 @@
-import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
-import { Badge } from "@/shared/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 const mockDocuments = [
@@ -64,10 +63,7 @@ export default function AdminDocumentsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
+      <main className="p-6">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Document Management</h1>
@@ -160,7 +156,7 @@ export default function AdminDocumentsPage() {
                           <span className="capitalize">{doc.document_type.replace("_", " ")}</span>
                         </div>
 
-                        {doc.program && (
+                        {doc.activity && (
                           <div className="flex items-center text-muted-foreground">
                             <span className="mr-2">📚</span>
                             {doc.activity.name}
@@ -285,7 +281,6 @@ export default function AdminDocumentsPage() {
             )}
           </div>
         </main>
-      </div>
     </div>
   )
 }
