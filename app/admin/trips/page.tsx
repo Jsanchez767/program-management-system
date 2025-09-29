@@ -47,9 +47,17 @@ interface Trip {
 interface Chaperone {
   id: string
   trip_id: string
-  staff_id: string
   organization_id: string
+  staff_id?: string | null
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  role?: string
+  notes?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_phone?: string | null
   created_at: string
+  updated_at: string
   staff_name?: string
   staff_email?: string
 }
@@ -174,7 +182,8 @@ export default function AdminTripsPage() {
           profiles:staff_id (
             first_name,
             last_name,
-            email
+            email,
+            phone
           )
         `)
         .eq('organization_id', user.user_metadata.organization_id)
@@ -186,10 +195,12 @@ export default function AdminTripsPage() {
 
       const chaperonesWithNames = chaperonesData?.map(chaperone => ({
         ...chaperone,
-        staff_name: chaperone.profiles ? 
+        staff_name: chaperone.staff_id && chaperone.profiles ? 
           `${chaperone.profiles.first_name || ''} ${chaperone.profiles.last_name || ''}`.trim() : 
-          'Unknown Staff',
-        staff_email: chaperone.profiles?.email || ''
+          chaperone.name || 'Unknown',
+        staff_email: chaperone.staff_id && chaperone.profiles ? 
+          chaperone.profiles.email || '' : 
+          chaperone.email || ''
       })) || []
 
       setChaperones(chaperonesWithNames)

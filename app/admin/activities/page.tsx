@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 import EditActivityModal from "./[id]/EditActivityModal"
 
-import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
@@ -206,13 +205,9 @@ export default function ActivitiesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AdminSidebar />
-
-      <div className="lg:pl-64">
-        <main className="p-6">
-          {/* Header */}
-          <div className="flex flex-col gap-4 mb-8">
+    <main className="p-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-foreground">Activities</h1>
@@ -727,7 +722,5 @@ export default function ActivitiesPage() {
             />
           )}
         </main>
-      </div>
-    </div>
   )
 }

@@ -320,9 +320,18 @@ export interface Trip {
 export interface Chaperone {
   id: string
   trip_id: string
-  staff_id: string
   organization_id: string
+  staff_id?: string | null
+  name?: string | null
+  email?: string | null
+  phone?: string | null
+  role?: string
+  notes?: string | null
+  emergency_contact_name?: string | null
+  emergency_contact_phone?: string | null
   created_at: string
+  updated_at: string
+  // For joined data from staff
   profiles?: {
     first_name?: string
     last_name?: string

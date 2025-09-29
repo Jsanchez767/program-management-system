@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { SidebarProvider } from "@/components/admin/sidebar-context"
+import { SharedLayout } from "@/components/shared/shared-layout"
+import { adminNavigation } from "@/components/shared/navigation-config"
 
 export default function AdminLayout({
   children,
@@ -10,13 +10,8 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background flex">
-        <AdminSidebar />
-        <div className="flex-1">
-          {children}
-        </div>
-      </div>
-    </SidebarProvider>
+    <SharedLayout title="Admin Dashboard" navigation={adminNavigation}>
+      {children}
+    </SharedLayout>
   )
 }
