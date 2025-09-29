@@ -1,6 +1,5 @@
 "use client"
 
-import { AdminSidebar } from "@/shared/components/layout/AdminSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
@@ -66,19 +65,16 @@ export default function AdminFieldTripsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AdminSidebar />
-      <div className="lg:pl-64">
-        <main className="p-6 lg:p-8 pt-20 lg:pt-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">Field Trips</h1>
-                <p className="text-muted-foreground">
-                  Review and manage field trip proposals from staffs
-                </p>
-              </div>
-            </div>
+    <main className="p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Field Trips</h1>
+            <p className="text-muted-foreground">
+              Review and manage field trip proposals from staffs
+            </p>
+          </div>
+        </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {fieldTrips.length > 0 ? (
@@ -151,8 +147,6 @@ export default function AdminFieldTripsPage() {
             )}
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   )
 }

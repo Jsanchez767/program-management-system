@@ -117,7 +117,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <main className="p-6 lg:p-8 pt-20 lg:pt-6">
+      <main className="p-6">
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -139,7 +139,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="p-6 lg:p-8 pt-20 lg:pt-6">
+    <main className="p-6">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>

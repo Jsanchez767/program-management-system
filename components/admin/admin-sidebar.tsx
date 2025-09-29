@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 const navigation = [
   { name: "Overview", href: "/admin", icon: "📊" },
   { name: "Programs", href: "/admin/activities", icon: "📚" },
+  { name: "Trips", href: "/admin/trips", icon: "🚌" },
   { name: "Participants", href: "/admin/participants", icon: "👥" },
   { name: "Invitations", href: "/admin/invitations", icon: "✉️" },
   { name: "Purchase Orders", href: "/admin/purchase-orders", icon: "🛒" },

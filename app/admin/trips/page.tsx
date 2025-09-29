@@ -224,7 +224,7 @@ export default function AdminTripsPage() {
 
   if (loading) {
     return (
-      <main className="p-6 lg:p-8 pt-20 lg:pt-6">
+      <main className="p-6">
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Trip Management</h1>
@@ -246,7 +246,7 @@ export default function AdminTripsPage() {
   }
 
   return (
-    <main className="p-6 lg:p-8 pt-20 lg:pt-6">
+    <main className="p-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
