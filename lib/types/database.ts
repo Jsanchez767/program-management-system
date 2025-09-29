@@ -311,6 +311,8 @@ export interface Trip {
   admin_comments: string
   organization_id: string
   activity_id: string
+  pickup_time?: string
+  return_time?: string
   created_at: string
   updated_at: string
 }

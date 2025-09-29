@@ -68,7 +68,9 @@ export default function AdminTripsPage() {
     start_date: '',
     end_date: '',
     max_participants: 0,
-    activity_id: ''
+    activity_id: '',
+    pickup_time: '',
+    return_time: ''
   })
   
   const supabase = createClient()
@@ -232,7 +234,9 @@ export default function AdminTripsPage() {
         start_date: '',
         end_date: '',
         max_participants: 0,
-        activity_id: ''
+        activity_id: '',
+        pickup_time: '',
+        return_time: ''
       })
     } catch (error) {
       console.error('Error:', error)
@@ -420,6 +424,29 @@ export default function AdminTripsPage() {
                       value={newTrip.max_participants}
                       onChange={(e) => setNewTrip({ ...newTrip, max_participants: parseInt(e.target.value) || 0 })}
                       placeholder="50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="pickup_time">Pickup Time</Label>
+                    <Input
+                      id="pickup_time"
+                      type="time"
+                      value={newTrip.pickup_time}
+                      onChange={(e) => setNewTrip({ ...newTrip, pickup_time: e.target.value })}
+                      placeholder="08:00"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="return_time">Return Time</Label>
+                    <Input
+                      id="return_time"
+                      type="time"
+                      value={newTrip.return_time}
+                      onChange={(e) => setNewTrip({ ...newTrip, return_time: e.target.value })}
+                      placeholder="15:00"
                     />
                   </div>
                 </div>
